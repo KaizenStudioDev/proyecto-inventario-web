@@ -1,0 +1,10 @@
+{
+  "name": "proyecto-inventario-web-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root package for monorepo structure - actual app is in inventory-web/",
+  "scripts": {
+    "build": "cd inventory-web && npm install && npm run build",
+    "dev": "cd inventory-web && npm run dev"
+  }
+}
