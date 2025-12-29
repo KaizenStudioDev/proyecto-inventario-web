@@ -1,0 +1,46 @@
+import { useState } from 'react';
+import { useAuth } from './lib/hooks';
+import Layout from './components/Layout';
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
+import ProductsPage from './pages/ProductsPage';
+import AlertsPage from './pages/AlertsPage';
+import SalesPage from './pages/SalesPage';
+import PurchasesPage from './pages/PurchasesPage';
+import './index.css';
+
+export default function App() {
+  const { user, loading } = useAuth();
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
+    return <AuthPage onAuthSuccess={() => window.location.reload()} />;
+  }
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <DashboardPage />;
+      case 'products':
+        return <ProductsPage />;
+      case 'alerts':
+        return <AlertsPage />;
+      case 'sales':
+        return <SalesPage />;
+      case 'purchases':
+        return <PurchasesPage />;
+      default:
+        return <DashboardPage />;
+    }
+  };
+
+  return (
+    <Layout currentPage={currentPage} setCurrentPage={setCurrentPage}>
+      {renderPage()}
+    </Layout>
+  );
+}

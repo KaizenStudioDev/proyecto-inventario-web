@@ -1,0 +1,6 @@
+## Example DB properties for local development
+# Copy this file to src/main/resources/db.properties (DO NOT commit real passwords)
+
+jdbc.url=jdbc:mysql://127.0.0.1:3306/inventario?useSSL=false
+jdbc.user=root
+jdbc.pass=Change_Me

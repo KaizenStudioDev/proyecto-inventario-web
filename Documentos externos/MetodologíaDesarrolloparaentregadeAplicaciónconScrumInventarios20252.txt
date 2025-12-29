@@ -1,0 +1,60 @@
+Metodología paso a paso para el desarrollo y entrega de la Aplicación – Gestión de Inventarios 
+De acuerdo con la asignatura en clase entrego metodología que soporta la integración de buenas prácticas de los principales paradigmas de programación (estructurado, orientado a objetos, funcional, declarativo etc.) y estilos de desarrollo (ágil, (Scrum) incremental, iterativo.). Esta metodología es adaptable a proyectos de software pequeños, medianos y grandes Proyectos en Automatización.
+1. Planeación y Análisis del Requerimiento (SPRINT 1)
+Objetivo: Comprender lo que se necesita construir.
+•	Reunión con stakeholders/clientes. (partes interesadas)
+•	Redacción de requerimientos funcionales y no funcionales.
+o	Paradigma de Programación Orientado a Objetos. para sistemas pequeños medianos, grandes y modulares.
+	Identificación y Descripción del Problema
+	Objetivo General.
+	Objetivos Específicos.
+	Requerimientos Funcionales
+	Estructuración del backlog tareas deseadas o requisitos.
+	Herramientas de Implementación y Desarrollo
+	Herramientas de Consumo a nivel de desarrollo e Interfaz
+
+Entregable: Documento de requerimientos + prototipo o mockup.
+
+2. Diseño de Arquitectura y Modelo (SPRINT 2)
+Objetivo: Traducir los requerimientos a un diseño técnico.
+	Identificación del Patrón de Diseño (MVC, DAO, Etc.).
+	Diseño de clases, Atributos, métodos, funciones o módulos Etc.
+	Modelado de Base de Datos y relaciones (si aplica).
+	Diagrama de componentes o flujo de datos.  
+	Desde los Casos de Uso, Modelo Entidad-Relación, Modelo Relacional, Diagramas Funcionales, Diagramas de Clases, Diagramas de objetos Diagramas Secuenciales, Otros Diagramas como Actividades, Componentes Diagramas de Despliegue, Diagramas de Estado etc.) cubriendo así una fase necesaria para una estructura interoperable portable y escalable.
+
+	Implementar CRUD como soporte en el diseño de acuerdo con todo el soporte de los diferentes Modelos y Diagramas que soportan el Sistema de Gestión de Inventarios en forma interactiva
+•	El sistema deberá contemplar la administración de Productos, proveedores, productos, ventas, clientes, y compras, integrando el uso de una base de datos o cualquier Manejador de Bases de Datos. (DBMS)
+Módulos obligatorios del sistema:
+•	Gestión de Clientes: registrar, editar, eliminar y consultar información de clientes. operaciones CRUD 
+•	Gestión de Proveedores: registrar, editar, eliminar y consultar información de proveedores. operaciones CRUD 
+•	Gestión de Productos: registrar, editar, eliminar y consultar información de Productos. operaciones CRUD 
+•	Registro de Ventas y Compras: asociadas a productos, clientes y proveedores respectivamente, con operaciones con el CRUD
+•	Conexión a base de datos (MySQL) de acuerdo con los módulos en desarrollo.
+
+Entregable: Documentación técnica del Diseño en Modelos y Diagramas Ejemplo Modelo Entidad Relación, Modelo Relacional (soporte con DBdisegner). Diagrama de Clase, Diagramas de Objeto, Diagrama Secuencial, Diagrama de Actividades, Diagrama de Estado y los demás Diagramas a Nivel de UML que se considere
+
+3. Definición del Entorno de Desarrollo. (SPRINT 3)
+Objetivo: Asegurar el entorno controlado y automatizado. Construir la aplicación por partes funcionales de acuerdo con la herramienta de implementación y desarrollo
+	Definir lenguaje herramientas de desarrollo (identificar el framework, el backend librerías. Etc.)
+	Configurar entorno local con herramientas de integración y conectividad.
+	Estilo funcional: usar funciones de composición.
+	Codificación algoritmos y estructuras de datos, definidos para un determinado el gestor de bases de datos. 
+	Depuración: garantizar que la aplicación esta libre de errores en el diseño y sus relaciones soporte del desarrollo e implementación (lógica del negocio) para la entrega definitiva de la solución.
+
+o	Pruebas al Sistema: Se evalúa el Sistema de acuerdo a la lista de requerimientos y se prueba el Sistema con el fin de obtener los resultados en forma confiable, segura y oportuna. Aquí se establecen las Pruebas Funcionales y las Pruebas no Funcionales. (Unitarias, de Regresión, Caja Blanca, Caja Negra, de Sistema y las que se considere etc).
+
+o	Puesta en Marcha: Se establece la producción del Sistema de acuerdo con la expresión de necesidades de los diferentes usuarios de la Organización, teniendo en cuenta la Integridad, la Disponibilidad y Confidencialidad de los resultados que generara el Sistema de Información.
+
+Entrega del Proyecto.
+	Código fuente documentado y organizado en carpetas. (De acuerdo al CRUD correspondiente)
+	Base de datos exportada (MySQL, SQL DBMS).
+	Documento que soporte la ejecución y operación del Aplicativo.
+	Video corto de presentación funcional (Opcional, máximo 5 minutos).
+
+4.  Entrega y Mantenimiento de la Aplicación (SPRINT 4)
+Objetivo: Entrega y garantizar el mejoramiento continuo para garantizar la calidad de la aplicación en la entrega.
+•	Establecer una retroalimentación (feedback) del cliente y usuarios finales.
+•	Garantía del Aplicativo de acuerdo con nuevos requerimientos (Nueva estructuración del backlog tareas deseadas o requisitos).
+•	Planificar nuevas versiones o actualizaciones.
+•	Monitoreo de acuerdo con las herramientas que soportan el Proyecto en su desarrollo.
