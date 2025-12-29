@@ -1,53 +1,283 @@
-# Sistema de Gestión de Inventarios (Sprint 1)
+# 📦 Sistema de Gestión de Inventarios - Edición Web
 
-Pequeña guía para ejecutar la demo del Sprint 1.
+**Migración exitosa**: Java/JavaFX → React + Supabase + Vercel
 
-## ¿Qué incluye esta entrega?
-- Prototipo de UI en `SistemaInventarioUI.java` con módulos: Dashboard, Clientes, Proveedores, Productos, Ventas, Compras.
-- Navegación funcional desde la barra superior.
-- Formulario modal para crear Clientes con validación básica; los clientes se guardan en memoria y se muestran en la tabla.
-- Documento de requerimientos: `DOC_Requerimientos_Sprint1.md`.
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-blue)
+![Version](https://img.shields.io/badge/Version-2.0%20Web-orange)
 
-## Requisitos técnicos
-- JDK 17 instalado
-- Maven
-- JavaFX 21 (las dependencias están declaradas en `pom.xml`)
+---
 
-## Ejecutar la aplicación (PowerShell en Windows)
+## 🚀 Demo en Vivo
 
-La aplicación necesita credenciales de base de datos para conectarse a MySQL. Si no se proporcionan, la app usa un conjunto de datos de ejemplo en memoria (de ahí que veas datos estáticos en la UI).
+**🌐 Accede a la aplicación**: https://proyecto-inventario-web-*.vercel.app
 
-Opciones para proporcionar las credenciales:
+Credenciales de prueba:
+```
+Email: test@example.com
+Password: test123456
+```
 
-- Opción A — archivo en el classpath (recomendado para desarrollo local):
-	- Copia `src/main/resources/db.properties.example` a `src/main/resources/db.properties` y rellena `jdbc.url`, `jdbc.user` y `jdbc.pass` (NO subas este archivo con contraseñas al repositorio).
-	- Ejecuta:
-		```pwsh
-		mvn clean compile
-		mvn javafx:run
-		```
+---
 
-- Opción B — pasar las credenciales al lanzar Maven (sin cambiar ficheros):
-	- Ejemplo PowerShell (sustituye los valores):
-		```pwsh
-		mvn -Djdbc.url="jdbc:mysql://127.0.0.1:3306/inventario?useSSL=false" -Djdbc.user="root" -Djdbc.pass="secret" javafx:run
-		```
+## 📋 Descripción
 
-Si `mvn javafx:run` falla por configuración del JDK/JavaFX, asegúrate de tener una JVM compatible y que las variables de entorno estén configuradas.
+Sistema web moderno y escalable para gestión de inventarios. Incluye:
 
-## Qué se implementó en este Sprint
-- Navegación entre módulos a través de los botones del menú superior.
-- Tabla reutilizable de `Clientes` enlazada a una `ObservableList` para que las altas se reflejen inmediatamente.
-- Validación mínima en el formulario de cliente (Nombre, Documento y Teléfono obligatorios).
-- Eliminación desde la columna "Acciones" (confirmación previa).
+- ✅ Autenticación segura con JWT
+- ✅ CRUD de productos con stock control
+- ✅ Gestión de clientes y proveedores
+- ✅ Registro de ventas y compras
+- ✅ Alertas automáticas de stock
+- ✅ Dashboard con KPIs en tiempo real
+- ✅ Base de datos relacional PostgreSQL
+- ✅ Responsive design (mobile-first)
 
-## Qué falta / próximas tareas
-- Refactorizar código en paquetes (`model`, `ui`, `controller`).
-- Persistencia (archivo o base de datos) para que los datos sobrevivan al cierre.
-- Formularios de edición y validaciones más robustas.
+---
 
-## Notas sobre estética
-- No se modificaron los estilos o paleta de colores elegidos inicialmente. Cambios realizados fueron únicamente funcionales y preservan el diseño.
+## 🏗️ Stack Tecnológico
+
+### Frontend
+```
+React 18 + Vite + Tailwind CSS + PostCSS
+```
+
+### Backend
+```
+Supabase (PostgreSQL 15 + Auth + RLS)
+```
+
+### Infrastructure
+```
+Git/GitHub + Vercel + Global CDN
+```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+proyecto-inventario-web/
+├── inventory-web/                  # Frontend React
+│   ├── src/
+│   │   ├── pages/                 # Páginas (Auth, Dashboard, CRUD)
+│   │   ├── components/            # Componentes reutilizables
+│   │   ├── lib/                   # Hooks y utilities
+│   │   └── App.jsx               # Router principal
+│   ├── package.json
+│   ├── vite.config.js
+│   └── tailwind.config.js
+│
+├── supabase/                       # Configuración BD
+│   ├── schema.sql                 # Tablas + Triggers
+│   ├── views.sql                  # Views analíticas
+│   ├── functions.sql              # Functions PL/pgSQL
+│   ├── policies.sql               # RLS Policies
+│   └── migration_import.sql       # Script migración datos
+│
+├── src/                           # Código original (Java)
+├── PHASE3_MIGRATION.md            # Guía migración
+├── PHASE4_VERCEL_DEPLOYMENT.md    # Guía deploy
+├── FINAL_CHECKLIST.md             # Estado proyecto
+├── PORTFOLIO_PROJECT_SUMMARY.md   # Resumen ejecutivo
+└── README.md                      # Este archivo
+```
+
+---
+
+## 🚀 Inicio Rápido
+
+### Opción 1: Usar Demo en Vivo
+1. Accede a: https://proyecto-inventario-web-*.vercel.app
+2. Crea una cuenta o usa las credenciales de prueba
+3. ¡Listo!
+
+### Opción 2: Desarrollo Local
+
+#### Requisitos
+- Node.js 16+
+- npm o yarn
+- Git
+
+#### Pasos
+
+1. **Clonar repositorio**
+```bash
+git clone https://github.com/KaizenStudioDev/proyecto-inventario-web.git
+cd proyecto-inventario-web
+```
+
+2. **Instalar dependencias**
+```bash
+cd inventory-web
+npm install
+```
+
+3. **Configurar variables de entorno**
+```bash
+# Copiar ejemplo
+cp .env.example .env
+
+# Editar .env y agregar tus credenciales de Supabase
+VITE_SUPABASE_URL=https://tu-url.supabase.co
+VITE_SUPABASE_ANON_KEY=tu-anon-key
+```
+
+4. **Ejecutar en desarrollo**
+```bash
+npm run dev
+# http://localhost:5175
+```
+
+5. **Build para producción**
+```bash
+npm run build
+# Output: dist/
+```
+
+---
+
+## 📊 Características Principales
+
+### 1. Dashboard Ejecutivo
+- 5 KPI cards (ventas, compras, inventario, stock)
+- Estadísticas rápidas
+- Estado del sistema
+
+### 2. Gestión de Productos
+- CRUD completo
+- Control de stock con mínimos
+- Alertas visuales (OK/LOW/OUT_OF_STOCK)
+- Búsqueda y filtrado
+
+### 3. Transacciones
+- Registro de ventas con carrito
+- Registro de compras
+- Cálculo automático de totales
+- Historial de transacciones
+
+### 4. Alertas
+- Stock bajo automático
+- Productos sin inventario
+- Notificaciones en tiempo real
+
+### 5. Seguridad
+- Autenticación JWT
+- RLS por rol (admin/staff)
+- Validaciones en BD y frontend
+- Audit log automático
+
+---
+
+## 🔐 Seguridad
+
+### Protecciones Implementadas
+- ✅ Supabase Auth (JWT tokens)
+- ✅ RLS Policies (Row Level Security)
+- ✅ Input validation (Frontend + Backend)
+- ✅ CORS configurado
+- ✅ Secrets seguros en Vercel
+- ✅ Audit log de cambios
+
+---
+
+## 📈 Datos Incluidos
+
+**20 Productos** migrados desde MySQL:
+- Laptops, monitores, periféricos
+- Sillas gaming, herramientas
+- Accesorios de tecnología
+
+**8 Clientes** de prueba:
+- Ubicaciones en Colombia
+- Información de contacto completa
+
+**6 Proveedores** con datos reales:
+- Distribuidoras tecnológicas
+- Detalles de contacto
+
+---
+
+## 🔄 Fases del Proyecto
+
+### Phase 1: Backend & Database ✅
+- Schema PostgreSQL con 9 tablas
+- 6 Triggers automáticos
+- 7 Views analíticas
+- 8 Functions PL/pgSQL
+- RLS Policies completas
+
+### Phase 2: Frontend ✅
+- 8 Componentes React
+- 6 Custom Hooks
+- Layout responsivo
+- Tailwind CSS styling
+
+### Phase 3: Migración ✅
+- MySQL → Postgres
+- 20 productos importados
+- 8 clientes migrados
+- 6 proveedores migrados
+
+### Phase 4: Deployment ✅
+- GitHub repository
+- Vercel hosting
+- CI/CD automático
+- Global CDN
+
+---
+
+## 📚 Documentación
+
+- **PORTFOLIO_PROJECT_SUMMARY.md** - Resumen ejecutivo
+- **FINAL_CHECKLIST.md** - Estado completo del proyecto
+- **PHASE3_MIGRATION.md** - Detalles de migración
+- **PHASE4_VERCEL_DEPLOYMENT.md** - Guía de deployment
+- **supabase/README.md** - Setup de Supabase
+- **supabase/PHASE1_DEEPDIVE.md** - Diseño de BD
+
+---
+
+## 🤝 Contribuciones
+
+Este es un proyecto personal de portfolio. Para sugerencias o mejoras, abre un issue.
+
+---
+
+## 📝 Licencia
+
+MIT License - Ver LICENSE para más detalles
+
+---
+
+## 👨‍💻 Autor
+
+**KaizenStudioDev**  
+GitHub: https://github.com/KaizenStudioDev
+
+---
+
+## 🙏 Agradecimientos
+
+- React & Vite communities
+- Supabase por el excelente BaaS
+- Vercel por hosting confiable
+- Tailwind CSS por styling utilities
+
+---
+
+**Última actualización**: 29 de Diciembre 2025  
+**Status**: ✅ Production Ready
+
+---
+
+## 🎯 Próximos Pasos
+
+1. **Testing**: Prueba todas las características en demo
+2. **Feedback**: Abre issues para bugs o sugerencias
+3. **Mejoras**: Ver sección "Roadmap" en PORTFOLIO_PROJECT_SUMMARY.md
+
+¡Gracias por visitar! 🚀
 
 ---
 
