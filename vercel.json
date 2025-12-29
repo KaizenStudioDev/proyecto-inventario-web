@@ -1,5 +1,7 @@
 {
-  "buildCommand": "cd inventory-web && npm run build",
-  "outputDirectory": "inventory-web/dist",
-  "framework": "vite"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rootDirectory": "inventory-web"
 }
