@@ -44,7 +44,7 @@ export function useProducts() {
   }
 
   useEffect(() => { load(); }, []);
-  return { products, loading, error, reload: load };
+  return { products, loading, error, refetch: load };
 }
 
 // Custom hook: Fetch customers
@@ -52,14 +52,15 @@ export function useCustomers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.from('customers').select('*').then(({ data }) => {
-      setCustomers(data || []);
-      setLoading(false);
-    });
-  }, []);
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from('customers').select('*').order('name');
+    setCustomers(data || []);
+    setLoading(false);
+  }
 
-  return { customers, loading };
+  useEffect(() => { load(); }, []);
+  return { customers, loading, refetch: load };
 }
 
 // Custom hook: Fetch suppliers
@@ -67,14 +68,15 @@ export function useSuppliers() {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.from('suppliers').select('*').then(({ data }) => {
-      setSuppliers(data || []);
-      setLoading(false);
-    });
-  }, []);
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from('suppliers').select('*').order('name');
+    setSuppliers(data || []);
+    setLoading(false);
+  }
 
-  return { suppliers, loading };
+  useEffect(() => { load(); }, []);
+  return { suppliers, loading, refetch: load };
 }
 
 // Custom hook: Fetch low stock alerts

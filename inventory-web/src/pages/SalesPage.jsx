@@ -5,7 +5,7 @@ import ModernSelect from '../components/ModernSelect';
 
 export default function SalesPage() {
   const { customers, loading: customersLoading } = useCustomers();
-  const { products } = useProducts();
+  const { products, refetch: refetchProducts } = useProducts();
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [items, setItems] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState('');
@@ -72,7 +72,10 @@ export default function SalesPage() {
 
       setSelectedCustomer('');
       setItems([]);
-      loadSales();
+      
+      // Reload sales and products to show updated stock
+      await loadSales();
+      await refetchProducts();
     } catch (err) {
       setError(err.message);
     } finally {
