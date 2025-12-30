@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { formatCurrency, formatCompactCurrency, formatCompactNumber } from '../lib/hooks';
+import QuickAddProductModal from '../components/QuickAddProductModal';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -15,6 +19,15 @@ export default function DashboardPage() {
     }
     load();
   }, []);
+
+  function handleProductAdded() {
+    // Reload metrics when a product is added
+    async function reload() {
+      const { data } = await supabase.from('view_financial_snapshot').select('*').single();
+      setMetrics(data);
+    }
+    reload();
+  }
 
   if (loading) {
     return (
@@ -127,7 +140,7 @@ export default function DashboardPage() {
           </ul>
         </div>
 
-        {/* Inventory Alerts */}
+        {/* Quick Actions */}
         <div className="card">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center">
@@ -136,21 +149,44 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
           </div>
           <div className="space-y-2">
-            <button className="w-full bg-gradient-to-r from-primary-50 to-primary-100 hover:from-primary-100 hover:to-primary-200 text-primary-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group">
-              <span>View Low Stock Items</span>
+            <button 
+              onClick={() => navigate('/alerts')}
+              className="w-full bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+            >
+              <span>🚨 View Low Stock Items</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
-            <button className="w-full bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group">
-              <span>Generate Report</span>
+            <button 
+              onClick={() => setShowQuickAddModal(true)}
+              className="w-full bg-gradient-to-r from-primary-50 to-primary-100 hover:from-primary-100 hover:to-primary-200 text-primary-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+            >
+              <span>📦 Quick Add Product</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
-            <button className="w-full bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group">
-              <span>Export Data</span>
+            <button 
+              onClick={() => navigate('/sales')}
+              className="w-full bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+            >
+              <span>💰 Record New Sale</span>
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+            <button 
+              onClick={() => navigate('/purchases')}
+              className="w-full bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+            >
+              <span>🛒 Record New Purchase</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Quick Add Product Modal */}
+      <QuickAddProductModal
+        isOpen={showQuickAddModal}
+        onClose={() => setShowQuickAddModal(false)}
+        onSuccess={handleProductAdded}
+      />
     </div>
   );
 }
