@@ -2,10 +2,16 @@
 
 @import "tailwindcss";
 
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  * {
+    @apply font-sans;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 @theme {
@@ -30,6 +36,8 @@ body {
   --color-accent-700: #a21caf;
   --color-accent-800: #86198f;
   --color-accent-900: #701a75;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
 .btn-primary {
