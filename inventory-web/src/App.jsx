@@ -24,7 +24,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardPage />;
+        return <DashboardPage setCurrentPage={setCurrentPage} />;
       case 'products':
         return <ProductsPage />;
       case 'alerts':
@@ -34,7 +34,7 @@ export default function App() {
       case 'purchases':
         return <PurchasesPage />;
       default:
-        return <DashboardPage />;
+        return <DashboardPage setCurrentPage={setCurrentPage} />;
     }
   };
 

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { formatCurrency, formatCompactCurrency, formatCompactNumber } from '../lib/hooks';
 import QuickAddProductModal from '../components/QuickAddProductModal';
 
-export default function DashboardPage() {
-  const navigate = useNavigate();
+export default function DashboardPage({ setCurrentPage = () => {} }) {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
@@ -151,7 +149,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <button
-              onClick={() => navigate('/alerts')}
+              onClick={() => setCurrentPage('alerts')}
               className="text-sm font-semibold text-red-600 hover:text-red-700 hover:underline"
             >
               View All →
@@ -253,7 +251,7 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2">
             <button 
-              onClick={() => navigate('/alerts')}
+              onClick={() => setCurrentPage('alerts')}
               className="w-full bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
             >
               <span>🚨 View Low Stock Items</span>
@@ -267,14 +265,14 @@ export default function DashboardPage() {
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
             <button 
-              onClick={() => navigate('/sales')}
+              onClick={() => setCurrentPage('sales')}
               className="w-full bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
             >
               <span>💰 Record New Sale</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
             <button 
-              onClick={() => navigate('/purchases')}
+              onClick={() => setCurrentPage('purchases')}
               className="w-full bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
             >
               <span>🛒 Record New Purchase</span>
