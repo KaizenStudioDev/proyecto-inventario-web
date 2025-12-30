@@ -9,12 +9,25 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data } = await supabase.from('view_financial_snapshot').select('*').single();
-      setMetrics(data);
+      
+      // Load metrics
+      const { data: metricsData } = await supabase.from('view_financial_snapshot').select('*').single();
+      setMetrics(metricsData);
+      
+      // Load low stock products (top 5)
+      const { data: lowStockData } = await supabase
+        .from('view_low_stock_products')
+        .select('*')
+        .order('stock', { ascending: true })
+        .limit(5);
+      setLowStockProducts(lowStockData || []);
+      
       setLoading(false);
     }
     load();
@@ -25,8 +38,34 @@ export default function DashboardPage() {
     async function reload() {
       const { data } = await supabase.from('view_financial_snapshot').select('*').single();
       setMetrics(data);
+      
+      // Also reload low stock products
+      const { data: lowStockData } = await supabase
+        .from('view_low_stock_products')
+        .select('*')
+        .order('stock', { ascending: true })
+        .limit(5);
+      setLowStockProducts(lowStockData || []);
     }
     reload();
+  }
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    
+    // Load metrics
+    const { data: metricsData } = await supabase.from('view_financial_snapshot').select('*').single();
+    setMetrics(metricsData);
+    
+    // Load low stock products
+    const { data: lowStockData } = await supabase
+      .from('view_low_stock_products')
+      .select('*')
+      .order('stock', { ascending: true })
+      .limit(5);
+    setLowStockProducts(lowStockData || []);
+    
+    setTimeout(() => setRefreshing(false), 500);
   }
 
   if (loading) {
@@ -56,9 +95,20 @@ export default function DashboardPage() {
           <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
           <p className="text-gray-600">Welcome back! Here's your business overview</p>
         </div>
-        <div className="hidden md:flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-soft">
-          <span className="text-2xl">📅</span>
-          <span className="text-sm font-medium text-gray-700">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="hidden md:flex items-center gap-2 bg-white hover:bg-gray-50 px-4 py-2 rounded-xl shadow-soft transition-colors disabled:opacity-50"
+            title="Refresh dashboard"
+          >
+            <span className={`text-xl ${refreshing ? 'animate-spin' : ''}`}>🔄</span>
+            <span className="text-sm font-medium text-gray-700">Refresh</span>
+          </button>
+          <div className="hidden md:flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-soft">
+            <span className="text-2xl">📅</span>
+            <span className="text-sm font-medium text-gray-700">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
         </div>
       </div>
 
@@ -84,6 +134,59 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Low Stock Alerts Section */}
+      {lowStockProducts.length > 0 && (
+        <div className="card bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
+                <span className="text-xl">⚠️</span>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Stock Alerts</h2>
+                <p className="text-xs text-gray-600">{lowStockProducts.length} products need attention</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/alerts')}
+              className="text-sm font-semibold text-red-600 hover:text-red-700 hover:underline"
+            >
+              View All →
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+            {lowStockProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg p-4 border border-red-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-2xl">📦</span>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                    product.stock === 0 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {product.stock === 0 ? 'OUT' : 'LOW'}
+                  </span>
+                </div>
+                <h3 className="font-bold text-gray-900 text-sm mb-1 truncate" title={product.name}>
+                  {product.name}
+                </h3>
+                <p className="text-xs text-gray-500 mb-2">SKU: {product.sku}</p>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">Stock:</span>
+                  <span className={`font-bold ${product.stock === 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                    {product.stock} / {product.min_stock}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
