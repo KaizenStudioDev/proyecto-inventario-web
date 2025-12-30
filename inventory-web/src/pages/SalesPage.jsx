@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useCustomers, useProducts, formatCurrency } from '../lib/hooks';
+import ModernSelect from '../components/ModernSelect';
 
 export default function SalesPage() {
   const { customers, loading: customersLoading } = useCustomers();
@@ -12,6 +13,10 @@ export default function SalesPage() {
   const [sales, setSales] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadSales();
+  }, []);
 
   async function loadSales() {
     const { data } = await supabase.from('sales').select('*').order('created_at', { ascending: false });
@@ -47,7 +52,6 @@ export default function SalesPage() {
     setLoading(true);
 
     try {
-      // Create sale
       const { data: saleData, error: saleError } = await supabase
         .from('sales')
         .insert({ customer_id: selectedCustomer, status: 'COMPLETED' })
@@ -56,7 +60,6 @@ export default function SalesPage() {
 
       if (saleError) throw saleError;
 
-      // Add items
       const itemsToInsert = items.map(item => ({
         sale_id: saleData.id,
         product_id: item.product_id,
@@ -79,137 +82,222 @@ export default function SalesPage() {
 
   const total = items.reduce((sum, item) => sum + (item.qty * item.unit_price), 0);
 
+  const customerOptions = customers.map(c => ({
+    value: c.id,
+    label: c.name,
+    icon: '👤',
+    description: c.email || '',
+  }));
+
+  const productOptions = products.map(p => ({
+    value: p.id,
+    label: p.name,
+    icon: '📦',
+    description: `Stock: ${p.stock} | Price: ${formatCurrency(p.unit_price)}`,
+  }));
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Sales</h1>
+    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">💰 Sales</h1>
+        <p className="text-gray-600">Record and manage customer sales transactions</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Create Sale */}
-        <div className="lg:col-span-1 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">New Sale</h2>
+        {/* Create Sale - Left Panel */}
+        <div className="card p-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span>➕</span> New Sale
+            </h2>
+          </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Customer</label>
-              <select
-                value={selectedCustomer}
-                onChange={e => setSelectedCustomer(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-                disabled={customersLoading}
-              >
-                <option value="">Select customer...</option>
-                {customers.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
+          <div className="p-6 space-y-4">
+            {/* Customer Select */}
+            <ModernSelect
+              label="Select Customer"
+              icon="👤"
+              value={selectedCustomer}
+              onChange={setSelectedCustomer}
+              options={customerOptions}
+              placeholder="Choose a customer..."
+              disabled={customersLoading}
+            />
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Product</label>
-              <select
-                value={selectedProduct}
-                onChange={e => setSelectedProduct(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-              >
-                <option value="">Select product...</option>
-                {products.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>
-                ))}
-              </select>
-            </div>
+            {/* Product Select */}
+            <ModernSelect
+              label="Select Product"
+              icon="📦"
+              value={selectedProduct}
+              onChange={setSelectedProduct}
+              options={productOptions}
+              placeholder="Choose a product..."
+            />
 
+            {/* Quantity */}
             <div>
-              <label className="block text-sm font-medium mb-1">Quantity</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity</label>
               <input
                 type="number"
                 min="1"
                 value={selectedQty}
                 onChange={e => setSelectedQty(Number(e.target.value))}
-                className="w-full border rounded px-3 py-2"
+                className="input-field"
               />
             </div>
 
+            {/* Add Item Button */}
             <button
               onClick={handleAddItem}
               disabled={!selectedProduct}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded disabled:opacity-50"
+              className="btn-primary w-full flex items-center justify-center gap-2"
             >
-              Add Item
+              <span>➕</span>
+              <span>Add Item to Cart</span>
             </button>
 
-            <hr className="my-4" />
+            <div className="my-4 border-t-2 border-gray-200"></div>
 
-            <h3 className="font-semibold mb-3">Items ({items.length})</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm bg-gray-50 p-2 rounded">
-                  <span>
-                    {item.product_name} x{item.qty}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveItem(idx)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+            {/* Items List */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span>🛒</span>
+                Cart Items ({items.length})
+              </h3>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {items.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <p className="text-3xl mb-2">📭</p>
+                    <p className="text-sm">No items added yet</p>
+                  </div>
+                ) : (
+                  items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:shadow-md transition-shadow duration-200"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{item.product_name}</p>
+                        <p className="text-xs text-gray-600">
+                          {item.qty} × {formatCurrency(item.unit_price)} = <span className="font-bold">{formatCurrency(item.qty * item.unit_price)}</span>
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveItem(idx)}
+                        className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                        title="Remove item"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
-            <div className="bg-blue-50 p-3 rounded border border-blue-200">
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-blue-600">{formatCurrency(total)}</p>
+            {/* Total Box */}
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-300 rounded-xl p-4">
+              <p className="text-sm text-primary-700 font-medium mb-1">Total Amount</p>
+              <p className="text-3xl font-bold text-primary-600">{formatCurrency(total)}</p>
             </div>
 
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
 
+            {/* Complete Sale Button */}
             <button
               onClick={handleCreateSale}
               disabled={loading || !selectedCustomer || items.length === 0}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded disabled:opacity-50 font-semibold"
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-full py-3 px-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? 'Creating...' : 'Complete Sale'}
+              {loading ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>✅</span>
+                  <span>Complete Sale</span>
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Sales List */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Recent Sales</h2>
-          <button onClick={loadSales} className="mb-4 text-blue-600 hover:underline text-sm">
-            Refresh
-          </button>
+        {/* Sales List - Right Panel */}
+        <div className="lg:col-span-2 card p-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span>📋</span> Recent Sales
+            </h2>
+            <button
+              onClick={loadSales}
+              className="text-white hover:bg-white/20 px-3 py-1 rounded-lg transition-colors text-sm font-medium"
+              title="Refresh sales list"
+            >
+              🔄 Refresh
+            </button>
+          </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 border-b">
-                  <th className="text-left px-3 py-2">Customer</th>
-                  <th className="text-right px-3 py-2">Total</th>
-                  <th className="text-center px-3 py-2">Status</th>
-                  <th className="text-left px-3 py-2">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales.map(sale => {
-                  const customer = customers.find(c => c.id === sale.customer_id);
-                  return (
-                    <tr key={sale.id} className="border-b hover:bg-gray-50">
-                      <td className="px-3 py-2">{customer?.name || 'Unknown'}</td>
-                      <td className="px-3 py-2 text-right font-semibold">{formatCurrency(sale.total)}</td>
-                      <td className="px-3 py-2 text-center">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                          sale.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {sale.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-gray-600">{new Date(sale.created_at).toLocaleDateString()}</td>
+          <div className="p-6">
+            {sales.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-5xl mb-3">📭</p>
+                <p className="text-gray-500 font-medium">No sales recorded yet</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-100 border-b-2 border-gray-300">
+                      <th className="text-left px-4 py-3 text-sm font-bold text-gray-700">👤 Customer</th>
+                      <th className="text-right px-4 py-3 text-sm font-bold text-gray-700">💰 Total</th>
+                      <th className="text-center px-4 py-3 text-sm font-bold text-gray-700">✓ Status</th>
+                      <th className="text-left px-4 py-3 text-sm font-bold text-gray-700">📅 Date</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {sales.map(sale => {
+                      const customer = customers.find(c => c.id === sale.customer_id);
+                      return (
+                        <tr
+                          key={sale.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
+                        >
+                          <td className="px-4 py-3 font-semibold text-gray-900">{customer?.name || '❓ Unknown'}</td>
+                          <td className="px-4 py-3 text-right font-bold text-primary-600">{formatCurrency(sale.total)}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
+                              sale.status === 'COMPLETED'
+                                ? 'bg-green-100 text-green-800'
+                                : sale.status === 'PENDING'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {sale.status === 'COMPLETED' ? '✅' : sale.status === 'PENDING' ? '⏳' : '❌'}
+                              {sale.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600 text-sm">
+                            {new Date(sale.created_at).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>
