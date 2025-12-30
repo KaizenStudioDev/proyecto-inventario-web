@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { formatCurrency } from '../lib/hooks';
+import { formatCurrency, formatCompactCurrency, formatCompactNumber } from '../lib/hooks';
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState(null);
@@ -28,11 +28,11 @@ export default function DashboardPage() {
   }
 
   const stats = [
-    { label: 'Total Sales', value: formatCurrency(metrics?.total_sales_completed || 0), icon: '💰', gradient: 'from-blue-500 to-blue-600', trend: '+12.5%' },
-    { label: 'Total Purchases', value: formatCurrency(metrics?.total_purchases_received || 0), icon: '🛒', gradient: 'from-purple-500 to-purple-600', trend: '+8.2%' },
-    { label: 'Inventory Value', value: formatCurrency(metrics?.inventory_value || 0), icon: '💎', gradient: 'from-green-500 to-green-600', trend: '+5.7%' },
-    { label: 'In Stock', value: metrics?.available_product_count || 0, icon: '📦', gradient: 'from-amber-500 to-amber-600', trend: 'Good' },
-    { label: 'Out of Stock', value: metrics?.out_of_stock_count || 0, icon: '⚠️', gradient: 'from-red-500 to-red-600', trend: 'Alert' },
+    { label: 'Total Sales', value: formatCompactCurrency(metrics?.total_sales_completed || 0), icon: '💰', gradient: 'from-blue-500 to-blue-600', trend: '+12.5%' },
+    { label: 'Total Purchases', value: formatCompactCurrency(metrics?.total_purchases_received || 0), icon: '🛒', gradient: 'from-purple-500 to-purple-600', trend: '+8.2%' },
+    { label: 'Inventory Value', value: formatCompactCurrency(metrics?.inventory_value || 0), icon: '💎', gradient: 'from-green-500 to-green-600', trend: '+5.7%' },
+    { label: 'In Stock', value: formatCompactNumber(metrics?.available_product_count || 0), icon: '📦', gradient: 'from-amber-500 to-amber-600', trend: 'Good' },
+    { label: 'Out of Stock', value: formatCompactNumber(metrics?.out_of_stock_count || 0), icon: '⚠️', gradient: 'from-red-500 to-red-600', trend: 'Alert' },
   ];
 
   return (

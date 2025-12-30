@@ -106,3 +106,49 @@ export function getStockColor(stock, minStock) {
 export function formatCurrency(amount) {
   return '$' + Number(amount || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+// Utility: Format large numbers compactly (K, M, B)
+export function formatCompactNumber(num) {
+  const number = Number(num || 0);
+  
+  // Less than 100,000: show full number
+  if (number < 100000) {
+    return number.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  
+  // 100K - 999K
+  if (number < 1000000) {
+    return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  
+  // 1M - 999M
+  if (number < 1000000000) {
+    return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  
+  // 1B+
+  return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+}
+
+// Utility: Format currency with compact notation for large amounts
+export function formatCompactCurrency(amount) {
+  const number = Number(amount || 0);
+  
+  // Less than 100,000: show full currency
+  if (number < 100000) {
+    return '$' + number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  
+  // 100K - 999K
+  if (number < 1000000) {
+    return '$' + (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  
+  // 1M - 999M
+  if (number < 1000000000) {
+    return '$' + (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  
+  // 1B+
+  return '$' + (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+}
