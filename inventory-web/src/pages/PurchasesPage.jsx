@@ -20,6 +20,16 @@ export default function PurchasesPage() {
   const canViewPurchases = profile && ['admin', 'contabilidad', 'tester'].includes(profile.role);
   const canCreatePurchases = profile && ['admin', 'contabilidad', 'tester'].includes(profile.role);
 
+  // Load purchases on component mount
+  useEffect(() => {
+    loadPurchases();
+  }, []);
+
+  async function loadPurchases() {
+    const { data } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
+    setPurchases(data || []);
+  }
+
   // If profile not loaded yet, show loading
   if (!profile) {
     return (
@@ -41,15 +51,6 @@ export default function PurchasesPage() {
         </div>
       </div>
     );
-  }
-
-  useEffect(() => {
-    loadPurchases();
-  }, []);
-
-  async function loadPurchases() {
-    const { data } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
-    setPurchases(data || []);
   }
 
   async function handleAddItem() {

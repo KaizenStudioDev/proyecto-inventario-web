@@ -15,9 +15,15 @@ export default function SalesPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check permissions: all can view sales, only admin/vendedor/tester can create
-  const canViewSales = profile && ['admin', 'vendedor', 'contabilidad', 'tester'].includes(profile.role);
-  const canCreateSales = profile && ['admin', 'vendedor', 'tester'].includes(profile.role);
+  // Load sales on component mount
+  useEffect(() => {
+    loadSales();
+  }, []);
+
+  async function loadSales() {
+    const { data } = await supabase.from('sales').select('*').order('created_at', { ascending: false });
+    setSales(data || []);
+  }
 
   // If profile not loaded yet, show loading
   if (!profile) {
@@ -41,15 +47,6 @@ export default function SalesPage() {
         </div>
       </div>
     );
-  }
-
-  useEffect(() => {
-    loadSales();
-  }, []);
-
-  async function loadSales() {
-    const { data } = await supabase.from('sales').select('*').order('created_at', { ascending: false });
-    setSales(data || []);
   }
 
   async function handleAddItem() {
