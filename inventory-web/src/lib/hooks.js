@@ -12,7 +12,9 @@ export function useAuth() {
       setUser(session?.user || null);
       if (session?.user) {
         supabase.from('profiles').select('*').eq('user_id', session.user.id).single()
-          .then(({ data }) => setProfile(data))
+          .then(({ data }) => {
+            setProfile(data || { role: 'tester', is_test_user: false });
+          })
           .finally(() => setLoading(false));
       } else {
         setLoading(false);
@@ -21,6 +23,14 @@ export function useAuth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
+      if (session?.user) {
+        supabase.from('profiles').select('*').eq('user_id', session.user.id).single()
+          .then(({ data }) => {
+            setProfile(data || { role: 'tester', is_test_user: false });
+          });
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => subscription?.unsubscribe();

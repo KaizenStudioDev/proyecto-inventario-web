@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useSuppliers, useProducts, formatCurrency } from '../lib/hooks';
+import { useSuppliers, useProducts, formatCurrency, useAuth } from '../lib/hooks';
 import ModernSelect from '../components/ModernSelect';
 
 export default function PurchasesPage() {
+  const { profile } = useAuth();
   const { suppliers, loading: suppliersLoading } = useSuppliers();
   const { products, refetch: refetchProducts } = useProducts();
   const [selectedSupplier, setSelectedSupplier] = useState('');
@@ -14,6 +15,20 @@ export default function PurchasesPage() {
   const [purchases, setPurchases] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Check permission
+  const canAccessPurchases = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
+
+  if (!canAccessPurchases) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6 text-center">
+          <p className="text-xl font-bold text-amber-900">🚫 Access Denied</p>
+          <p className="text-amber-700 mt-2">Your role ({profile?.role}) does not have permission to access Purchases.</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     loadPurchases();

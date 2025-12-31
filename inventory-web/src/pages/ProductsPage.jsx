@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useProducts, getStockColor, formatCurrency } from '../lib/hooks';
+import { useProducts, getStockColor, formatCurrency, useAuth } from '../lib/hooks';
 
 export default function ProductsPage() {
+  const { profile } = useAuth();
   const { products, loading, error, reload } = useProducts();
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', sku: '', unit_price: '', stock: 0, min_stock: 0 });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Role-based permissions
+  const canCreate = ['admin', 'tester'].includes(profile?.role);
+  const canDelete = profile?.role === 'admin';
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -59,7 +64,13 @@ export default function ProductsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center gap-2"
+          disabled={!canCreate}
+          className={`flex items-center gap-2 ${
+            canCreate
+              ? 'btn-primary'
+              : 'px-4 py-2 rounded-lg font-medium text-gray-400 bg-gray-100 cursor-not-allowed'
+          }`}
+          title={!canCreate ? 'Only Admin and Tester can create products' : ''}
         >
           <span className="text-xl">+</span>
           <span>Add Product</span>
@@ -234,12 +245,19 @@ export default function ProductsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="text-red-600 hover:text-red-800 font-medium text-sm hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors duration-150"
-                      >
-                        🗑️ Delete
-                      </button>
+                      {canDelete ? (
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="text-red-600 hover:text-red-800 font-medium text-sm hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors duration-150"
+                          title="Delete product"
+                        >
+                          🗑️ Delete
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-sm px-3 py-1.5">
+                          (No permission)
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

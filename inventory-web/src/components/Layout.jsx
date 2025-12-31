@@ -4,17 +4,44 @@ import { supabase } from '../lib/supabaseClient';
 export default function Layout({ children, currentPage, setCurrentPage }) {
   const { user, profile } = useAuth();
 
+  const getRoleLabel = (role) => {
+    const labels = {
+      admin: '👑 Admin',
+      vendedor: '💼 Vendedor',
+      contabilidad: '📊 Contabilidad',
+      tester: '🧪 Tester'
+    };
+    return labels[role] || role;
+  };
+
+  const getRoleColor = (role) => {
+    const colors = {
+      admin: 'from-red-500 to-red-600',
+      vendedor: 'from-blue-500 to-blue-600',
+      contabilidad: 'from-green-500 to-green-600',
+      tester: 'from-purple-500 to-purple-600'
+    };
+    return colors[role] || 'from-gray-500 to-gray-600';
+  };
+
+  const isTestUser = profile?.is_test_user || false;
+
   async function handleLogout() {
     await supabase.auth.signOut();
   }
 
   const pages = [
-    { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
-    { id: 'products', label: '📦 Products', icon: '📦' },
-    { id: 'alerts', label: '⚠️ Alerts', icon: '⚠️' },
-    { id: 'sales', label: '💰 Sales', icon: '💰' },
-    { id: 'purchases', label: '🛒 Purchases', icon: '🛒' },
+    { id: 'dashboard', label: '📊 Dashboard', icon: '📊', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'products', label: '📦 Products', icon: '📦', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'alerts', label: '⚠️ Alerts', icon: '⚠️', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'sales', label: '💰 Sales', icon: '💰', roles: ['admin', 'vendedor', 'tester'] },
+    { id: 'purchases', label: '🛒 Purchases', icon: '🛒', roles: ['admin', 'contabilidad', 'tester'] },
   ];
+
+  // Filter pages based on user role
+  const visiblePages = pages.filter(page => 
+    page.roles.includes(profile?.role || 'tester')
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
@@ -37,7 +64,7 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
 
             {/* Navigation Pills */}
             <div className="hidden lg:flex items-center gap-2 bg-gray-100/60 backdrop-blur-sm rounded-xl p-1.5">
-              {pages.map(page => (
+              {visiblePages.map(page => (
                 <button
                   key={page.id}
                   onClick={() => setCurrentPage(page.id)}
@@ -57,10 +84,16 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
             <div className="flex items-center gap-4">
               <div className="hidden md:block text-right">
                 <p className="text-sm font-semibold text-gray-800">{user?.email?.split('@')[0]}</p>
-                <p className="text-xs text-gray-500 capitalize flex items-center justify-end gap-1">
-                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                  {profile?.role || 'Loading...'}
-                </p>
+                <div className="flex items-center justify-end gap-2">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRoleColor(profile?.role || 'tester')}`}>
+                    {getRoleLabel(profile?.role || 'tester')}
+                  </span>
+                  {isTestUser && (
+                    <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+                      TEST
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 onClick={handleLogout}
@@ -74,7 +107,7 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
 
         {/* Mobile Navigation */}
         <div className="lg:hidden border-t border-gray-200/50 px-4 py-2 flex gap-1 overflow-x-auto">
-          {pages.map(page => (
+          {visiblePages.map(page => (
             <button
               key={page.id}
               onClick={() => setCurrentPage(page.id)}
