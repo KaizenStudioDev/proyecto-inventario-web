@@ -121,10 +121,10 @@ export default function AuthPage({ onAuthSuccess }) {
         <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm">
           <p className="font-semibold text-gray-900 mb-2">🧪 Demo Accounts</p>
           <div className="space-y-1 text-xs text-gray-700">
-            <p><span className="font-medium">Admin:</span> admin@example.com</p>
-            <p><span className="font-medium">Sales:</span> vendedor@example.com</p>
-            <p><span className="font-medium">Accounting:</span> contabilidad@example.com</p>
-            <p className="text-gray-500 mt-2 italic">Password: demo123 (for all demo accounts)</p>
+            <p><span className="font-medium">Admin:</span> tester@gmail.com</p>
+            <p><span className="font-medium">Sales:</span> ventas@gmail.com</p>
+            <p><span className="font-medium">Accounting:</span> contaduria@gmail.com</p>
+            <p className="text-gray-500 mt-2 italic">Password: (Tester/Ventas/contaduria)123 (for all demo accounts)</p>
           </div>
         </div>
       </div>
