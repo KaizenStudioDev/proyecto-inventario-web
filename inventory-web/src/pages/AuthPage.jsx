@@ -14,17 +14,18 @@ export default function AuthPage({ onAuthSuccess }) {
     setLoading(true);
 
     try {
+      const emailTrimmed = email.trim().toLowerCase();
       if (mode === 'login') {
         const { error: err } = await supabase.auth.signInWithPassword({
-          email,
+          email: emailTrimmed,
           password,
         });
         if (err) throw err;
       } else {
         const { error: err } = await supabase.auth.signUp({
-          email,
+          email: emailTrimmed,
           password,
-          options: { data: { full_name: email.split('@')[0] } },
+          options: { data: { full_name: emailTrimmed.split('@')[0] } },
         });
         if (err) throw err;
       }
