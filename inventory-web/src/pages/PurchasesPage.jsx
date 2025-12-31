@@ -17,14 +17,15 @@ export default function PurchasesPage() {
   const [loading, setLoading] = useState(false);
 
   // Check permission
-  const canAccessPurchases = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
+  const canViewPurchases = ['admin', 'contabilidad', 'tester', 'vendedor'].includes(profile?.role);
+  const canCreatePurchases = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
 
-  if (!canAccessPurchases) {
+  if (!canViewPurchases) {
     return (
       <div className="p-8 max-w-4xl mx-auto">
-        <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6 text-center">
-          <p className="text-xl font-bold text-amber-900">🚫 Access Denied</p>
-          <p className="text-amber-700 mt-2">Your role ({profile?.role}) does not have permission to access Purchases.</p>
+        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6 text-center">
+          <p className="text-xl font-bold text-red-900">🚫 Access Denied</p>
+          <p className="text-red-700 mt-2">Your role ({profile?.role}) does not have permission to access Purchases.</p>
         </div>
       </div>
     );
@@ -122,10 +123,17 @@ export default function PurchasesPage() {
       <div>
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">🛒 Purchases</h1>
         <p className="text-gray-600">Record and manage supplier purchase orders</p>
+        {!canCreatePurchases && (
+          <div className="mt-3 bg-amber-50 border-l-4 border-amber-400 px-4 py-3 text-sm text-amber-800">
+            <p className="font-semibold">📖 View Only Mode</p>
+            <p>Your role ({profile?.role}) can view purchases but cannot create new ones.</p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Create Purchase - Left Panel */}
+        {/* Create Purchase - Left Panel (Only show if user can create) */}
+        {canCreatePurchases && (
         <div className="card p-0 overflow-hidden">
           <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -265,6 +273,7 @@ export default function PurchasesPage() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Purchases List - Right Panel */}
         <div className="lg:col-span-2 card p-0 overflow-hidden">

@@ -15,19 +15,9 @@ export default function SalesPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check permission
-  const canAccessSales = ['admin', 'vendedor', 'tester'].includes(profile?.role);
-
-  if (!canAccessSales) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto">
-        <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6 text-center">
-          <p className="text-xl font-bold text-amber-900">🚫 Access Denied</p>
-          <p className="text-amber-700 mt-2">Your role ({profile?.role}) does not have permission to access Sales.</p>
-        </div>
-      </div>
-    );
-  }
+  // Check permissions: all can view sales, only admin/vendedor/tester can create
+  const canViewSales = ['admin', 'vendedor', 'contabilidad', 'tester'].includes(profile?.role);
+  const canCreateSales = ['admin', 'vendedor', 'tester'].includes(profile?.role);
 
   useEffect(() => {
     loadSales();
@@ -120,10 +110,17 @@ export default function SalesPage() {
       <div>
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">💰 Sales</h1>
         <p className="text-gray-600">Record and manage customer sales transactions</p>
+        {!canCreateSales && (
+          <div className="mt-3 bg-amber-50 border-l-4 border-amber-400 px-4 py-3 text-sm text-amber-800">
+            <p className="font-semibold">📖 View Only Mode</p>
+            <p>Your role ({profile?.role}) can view sales but cannot create new ones.</p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Create Sale - Left Panel */}
+        {/* Create Sale - Left Panel (Only show if user can create) */}
+        {canCreateSales && (
         <div className="card p-0 overflow-hidden">
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -247,6 +244,7 @@ export default function SalesPage() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Sales List - Right Panel */}
         <div className="lg:col-span-2 card p-0 overflow-hidden">
