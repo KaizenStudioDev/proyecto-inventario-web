@@ -34,7 +34,7 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
     { id: 'dashboard', label: '📊 Dashboard', icon: '📊', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
     { id: 'products', label: '📦 Products', icon: '📦', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
     { id: 'alerts', label: '⚠️ Alerts', icon: '⚠️', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'sales', label: '💰 Sales', icon: '💰', roles: ['admin', 'vendedor', 'tester'] },
+    { id: 'sales', label: '💰 Sales', icon: '💰', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
     { id: 'purchases', label: '🛒 Purchases', icon: '🛒', roles: ['admin', 'contabilidad', 'tester'] },
   ];
 
