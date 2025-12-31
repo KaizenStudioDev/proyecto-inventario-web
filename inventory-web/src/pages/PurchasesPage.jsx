@@ -4,7 +4,7 @@ import { useSuppliers, useProducts, formatCurrency, useAuth } from '../lib/hooks
 import ModernSelect from '../components/ModernSelect';
 
 export default function PurchasesPage() {
-  const { profile } = useAuth();
+  const { profile, loading: profileLoading } = useAuth();
   const { suppliers, loading: suppliersLoading } = useSuppliers();
   const { products, refetch: refetchProducts } = useProducts();
   const [selectedSupplier, setSelectedSupplier] = useState('');
@@ -16,9 +16,21 @@ export default function PurchasesPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check permission
-  const canViewPurchases = ['admin', 'contabilidad', 'tester', 'vendedor'].includes(profile?.role);
+  // Check permission (matches RLS policies: admin, contabilidad, tester can view)
+  const canViewPurchases = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
   const canCreatePurchases = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
+
+  // Show loading while profile is being fetched
+  if (profileLoading) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-2xl mb-3">⏳</p>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!canViewPurchases) {
     return (

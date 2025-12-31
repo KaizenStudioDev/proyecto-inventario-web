@@ -4,7 +4,7 @@ import { useCustomers, useProducts, formatCurrency, useAuth } from '../lib/hooks
 import ModernSelect from '../components/ModernSelect';
 
 export default function SalesPage() {
-  const { profile } = useAuth();
+  const { profile, loading: profileLoading } = useAuth();
   const { customers, loading: customersLoading } = useCustomers();
   const { products, refetch: refetchProducts } = useProducts();
   const [selectedCustomer, setSelectedCustomer] = useState('');
@@ -18,6 +18,18 @@ export default function SalesPage() {
   // Check permissions: all can view sales, only admin/vendedor/tester can create
   const canViewSales = ['admin', 'vendedor', 'contabilidad', 'tester'].includes(profile?.role);
   const canCreateSales = ['admin', 'vendedor', 'tester'].includes(profile?.role);
+
+  // Show loading while profile is being fetched
+  if (profileLoading) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-2xl mb-3">⏳</p>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     loadSales();
