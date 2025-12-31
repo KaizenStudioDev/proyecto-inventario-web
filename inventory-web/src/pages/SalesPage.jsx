@@ -4,7 +4,7 @@ import { useCustomers, useProducts, formatCurrency, useAuth } from '../lib/hooks
 import ModernSelect from '../components/ModernSelect';
 
 export default function SalesPage() {
-  const { profile, loading: profileLoading } = useAuth();
+  const { profile } = useAuth();
   const { customers, loading: customersLoading } = useCustomers();
   const { products, refetch: refetchProducts } = useProducts();
   const [selectedCustomer, setSelectedCustomer] = useState('');
@@ -16,16 +16,28 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(false);
 
   // Check permissions: all can view sales, only admin/vendedor/tester can create
-  const canViewSales = ['admin', 'vendedor', 'contabilidad', 'tester'].includes(profile?.role);
-  const canCreateSales = ['admin', 'vendedor', 'tester'].includes(profile?.role);
+  const canViewSales = profile && ['admin', 'vendedor', 'contabilidad', 'tester'].includes(profile.role);
+  const canCreateSales = profile && ['admin', 'vendedor', 'tester'].includes(profile.role);
 
-  // Show loading while profile is being fetched
-  if (profileLoading) {
+  // If profile not loaded yet, show loading
+  if (!profile) {
     return (
       <div className="p-8 max-w-4xl mx-auto flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-2xl mb-3">⏳</p>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user doesn't have permission to view sales, deny access
+  if (!canViewSales) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6 text-center">
+          <p className="text-xl font-bold text-red-900">🚫 Access Denied</p>
+          <p className="text-red-700 mt-2">Your role ({profile.role}) does not have permission to access Sales.</p>
         </div>
       </div>
     );

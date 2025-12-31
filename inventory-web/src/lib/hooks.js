@@ -8,28 +8,55 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.user) {
+        // Fetch profile for authenticated user
         supabase.from('profiles').select('*').eq('user_id', session.user.id).single()
-          .then(({ data }) => {
-            setProfile(data || { role: 'tester', is_test_user: false });
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('Profile fetch error:', error);
+              // Set default profile if fetch fails
+              setProfile({ role: 'tester', is_test_user: false, full_name: '', avatar_url: null });
+            } else {
+              setProfile(data || { role: 'tester', is_test_user: false, full_name: '', avatar_url: null });
+            }
+          })
+          .catch(err => {
+            console.error('Profile error:', err);
+            setProfile({ role: 'tester', is_test_user: false, full_name: '', avatar_url: null });
           })
           .finally(() => setLoading(false));
       } else {
+        setProfile(null);
         setLoading(false);
       }
     });
 
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
+      setLoading(true); // Start loading when auth changes
+      
       if (session?.user) {
         supabase.from('profiles').select('*').eq('user_id', session.user.id).single()
-          .then(({ data }) => {
-            setProfile(data || { role: 'tester', is_test_user: false });
-          });
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('Profile fetch error on auth change:', error);
+              setProfile({ role: 'tester', is_test_user: false, full_name: '', avatar_url: null });
+            } else {
+              setProfile(data || { role: 'tester', is_test_user: false, full_name: '', avatar_url: null });
+            }
+          })
+          .catch(err => {
+            console.error('Profile error on auth change:', err);
+            setProfile({ role: 'tester', is_test_user: false, full_name: '', avatar_url: null });
+          })
+          .finally(() => setLoading(false));
       } else {
         setProfile(null);
+        setLoading(false);
       }
     });
 
