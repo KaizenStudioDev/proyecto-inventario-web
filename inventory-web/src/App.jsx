@@ -7,6 +7,7 @@ import ProductsPage from './pages/ProductsPage';
 import AlertsPage from './pages/AlertsPage';
 import SalesPage from './pages/SalesPage';
 import PurchasesPage from './pages/PurchasesPage';
+import ProfilePage from './pages/ProfilePage';
 import './index.css';
 
 export default function App() {
@@ -33,6 +34,8 @@ export default function App() {
         return <SalesPage />;
       case 'purchases':
         return <PurchasesPage />;
+      case 'profile':
+        return <ProfilePage />;
       default:
         return <DashboardPage setCurrentPage={setCurrentPage} />;
     }
