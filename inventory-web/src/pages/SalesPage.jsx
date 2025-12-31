@@ -37,6 +37,10 @@ export default function SalesPage() {
     );
   }
 
+  // Check permissions: all can view sales, only admin/vendedor/tester can create
+  const canViewSales = ['admin', 'vendedor', 'contabilidad', 'tester'].includes(profile.role);
+  const canCreateSales = ['admin', 'vendedor', 'tester'].includes(profile.role);
+
   // If user doesn't have permission to view sales, deny access
   if (!canViewSales) {
     return (
