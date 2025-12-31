@@ -234,10 +234,6 @@ export default function ProfilePage() {
               {isTestAccount ? 'Demo Account' : 'Personal Account'}
             </span>
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-gray-200">
-            <span className="text-gray-600">User ID:</span>
-            <span className="font-mono text-xs text-gray-900">{user?.id?.substring(0, 18)}...</span>
-          </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-600">Last Sign In:</span>
             <span className="font-semibold text-gray-900">
