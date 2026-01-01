@@ -203,12 +203,12 @@ create trigger profiles_touch_updated before update on public.profiles for each 
 -- STOCK MANAGEMENT TRIGGERS
 -- ============================================================================
 
--- Auto-sync profiles for new auth users (set default staff role)
+-- Auto-sync profiles for new auth users (set default tester role for personal accounts)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
 begin
-  insert into public.profiles(user_id, full_name, role)
-  values (new.id, new.raw_user_meta_data->>'full_name', 'staff');
+  insert into public.profiles(user_id, full_name, role, is_test_user)
+  values (new.id, new.raw_user_meta_data->>'full_name', 'tester', false);
   return new;
 end; $$;
 
