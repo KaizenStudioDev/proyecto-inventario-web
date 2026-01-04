@@ -327,7 +327,6 @@ export default function ReportsPage() {
               className="input-field"
               value={dateFrom}
               onChange={e => setDateFrom(e.target.value)}
-              disabled={reportType === 'inventory'}
             />
           </div>
           
@@ -338,7 +337,6 @@ export default function ReportsPage() {
               className="input-field"
               value={dateTo}
               onChange={e => setDateTo(e.target.value)}
-              disabled={reportType === 'inventory'}
             />
           </div>
           
