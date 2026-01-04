@@ -31,11 +31,11 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
   }
 
   const pages = [
-    { id: 'dashboard', label: '📊 Dashboard', icon: '📊', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'products', label: '📦 Products', icon: '📦', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'alerts', label: '⚠️ Alerts', icon: '⚠️', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'sales', label: '💰 Sales', icon: '💰', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'purchases', label: '🛒 Purchases', icon: '🛒', roles: ['admin', 'contabilidad', 'tester'] },
+    { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'products', label: 'Products', icon: 'Products', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'alerts', label: 'Alerts', icon: 'Alerts', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'sales', label: 'Sales', icon: 'Sales', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'purchases', label: 'Purchases', icon: 'Purchases', roles: ['admin', 'contabilidad', 'tester'] },
   ];
 
   // Filter pages based on user role
@@ -46,34 +46,33 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Professional Navbar */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gray-800 rounded-lg flex items-center justify-center text-white text-lg shadow-sm">
-                📦
+              <div className="w-9 h-9 bg-gray-900 rounded-md flex items-center justify-center text-white text-sm font-semibold tracking-wide">
+                INV
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Inventory Pro</h1>
-                <p className="text-xs text-gray-500 hidden sm:block">Stock Management System</p>
+                <h1 className="text-base font-semibold text-gray-900">Inventory OS</h1>
+                <p className="text-xs text-gray-500 hidden sm:block">Built by Kaizen Studio</p>
               </div>
             </div>
 
-            {/* Navigation Pills */}
+            {/* Navigation */}
             <div className="hidden lg:flex items-center gap-1">
               {visiblePages.map(page => (
                 <button
                   key={page.id}
                   onClick={() => setCurrentPage(page.id)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     currentPage === page.id
-                      ? 'bg-gray-800 text-white'
+                      ? 'bg-gray-900 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <span className="hidden xl:inline">{page.label}</span>
-                  <span className="xl:hidden text-base">{page.icon}</span>
+                  {page.label}
                 </button>
               ))}
             </div>
@@ -83,11 +82,11 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
               <div className="hidden md:block text-right">
                 <p className="text-sm font-semibold text-gray-900">{user?.email?.split('@')[0]}</p>
                 <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${getRoleColor(profile?.role || 'tester')}`}>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${getRoleColor(profile?.role || 'tester')}`}>
                     {getRoleLabel(profile?.role || 'tester')}
                   </span>
                   {isTestUser && (
-                    <span className="inline-block px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-semibold rounded">
+                    <span className="inline-block px-2 py-0.5 bg-yellow-200 text-yellow-900 text-[11px] font-semibold rounded">
                       DEMO
                     </span>
                   )}
@@ -95,14 +94,14 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
               </div>
               <button
                 onClick={() => setCurrentPage('profile')}
-                className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="btn-secondary hidden sm:inline-flex"
                 title="My Profile"
               >
-                👤 Profile
+                Profile
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="btn-danger"
               >
                 Logout
               </button>
@@ -111,14 +110,14 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="lg:hidden border-t border-gray-200 px-2 py-2 flex gap-1 overflow-x-auto">
+        <div className="lg:hidden border-t border-gray-200 px-2 py-2 flex gap-2 overflow-x-auto bg-white">
           {visiblePages.map(page => (
             <button
               key={page.id}
               onClick={() => setCurrentPage(page.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
                 currentPage === page.id
-                  ? 'bg-gray-800 text-white'
+                  ? 'bg-gray-900 text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -129,7 +128,14 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
       </nav>
 
       {/* Content */}
-      <main className="animate-fade-in">{children}</main>
+      <main className="animate-fade-in min-h-[calc(100vh-120px)]">{children}</main>
+
+      <footer className="border-t border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3 text-xs text-gray-500 flex items-center justify-between">
+          <span>Inventory OS · Confidential</span>
+          <span>Built by Kaizen Studio</span>
+        </div>
+      </footer>
     </div>
   );
 }
