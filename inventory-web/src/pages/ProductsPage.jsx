@@ -1,15 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useProducts, getStockColor, formatCurrency, useAuth } from '../lib/hooks';
+import { useProducts, getStockColor, formatCurrency, useAuth, useSuppliers } from '../lib/hooks';
 
 export default function ProductsPage() {
   const { profile } = useAuth();
   const { products, loading, error, reload } = useProducts();
+  const { suppliers } = useSuppliers();
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', sku: '', unit_price: '', stock: 0, min_stock: 0 });
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [form, setForm] = useState({ name: '', sku: '', category: '', supplier_id: '', unit_price: '', stock: 0, min_stock: 0 });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [movements, setMovements] = useState([]);
+  const [loadingMovements, setLoadingMovements] = useState(false);
+
+  // Auto-generate SKU suggestion
+  useEffect(() => {
+    if (form.name && !form.sku) {
+      const prefix = form.category ? form.category.substring(0, 3).toUpperCase() : 'PRD';
+      const namePart = form.name.substring(0, 4).toUpperCase().replace(/\s/g, '');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      setForm(prev => ({ ...prev, sku: `${prefix}-${namePart}-${random}` }));
+    }
+  }, [form.name, form.category]);
 
   // Role-based permissions
   const canCreate = ['admin', 'tester'].includes(profile?.role);
@@ -28,6 +43,8 @@ export default function ProductsPage() {
     const { error } = await supabase.from('products').insert({
       name: form.name.trim(),
       sku: form.sku.trim(),
+      category: form.category.trim() || null,
+      supplier_id: form.supplier_id || null,
       unit_price: Number(form.unit_price || 0),
       stock: Number(form.stock || 0),
       min_stock: Number(form.min_stock || 0),
@@ -36,7 +53,7 @@ export default function ProductsPage() {
     if (error) {
       setFormError(error.message);
     } else {
-      setForm({ name: '', sku: '', unit_price: '', stock: 0, min_stock: 0 });
+      setForm({ name: '', sku: '', category: '', supplier_id: '', unit_price: '', stock: 0, min_stock: 0 });
       setShowModal(false);
       reload();
     }
@@ -47,6 +64,21 @@ export default function ProductsPage() {
     if (!window.confirm('Delete this product?')) return;
     await supabase.from('products').delete().eq('id', id);
     reload();
+  }
+
+  async function openProductDetail(product) {
+    setSelectedProduct(product);
+    setShowDetailModal(true);
+    
+    // Fetch movement history (mock for now - will be replaced with real movements table)
+    setLoadingMovements(true);
+    // TODO: Replace with real movements query when table is created
+    // For now, generate mock data from sales and purchases
+    const mockMovements = [
+      { id: 1, type: 'Initial Stock', quantity: product.stock, date: new Date().toISOString(), notes: 'System initialization' }
+    ];
+    setMovements(mockMovements);
+    setLoadingMovements(false);
   }
 
   const filteredProducts = products.filter(p =>
@@ -113,8 +145,33 @@ export default function ProductsPage() {
                 />
               </div>
               
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+                  <input
+                    className="input-field"
+                    placeholder="e.g., Electronics"
+                    value={form.category}
+                    onChange={e => setForm({...form, category: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Supplier</label>
+                  <select
+                    className="input-field"
+                    value={form.supplier_id}
+                    onChange={e => setForm({...form, supplier_id: e.target.value})}
+                  >
+                    <option value="">None</option>
+                    {suppliers.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">SKU *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">SKU * <span className="text-xs text-gray-500">(auto-generated)</span></label>
                 <input
                   className="input-field"
                   placeholder="e.g., LAP-DELL-001"
@@ -173,6 +230,141 @@ export default function ProductsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Product Detail Modal */}
+      {showDetailModal && selectedProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-xl p-8 w-full max-w-4xl shadow-lg animate-scale-in border border-gray-200 my-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Product Details</p>
+                <h2 className="text-2xl font-bold text-gray-900">{selectedProduct.name}</h2>
+                <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded mt-1 inline-block">{selectedProduct.sku}</span>
+              </div>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Product Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="card bg-gray-50">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Category</span>
+                    <span className="text-sm font-semibold text-gray-900">{selectedProduct.category || 'Not specified'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Unit Price</span>
+                    <span className="text-sm font-semibold text-gray-900">{formatCurrency(selectedProduct.unit_price)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Current Stock</span>
+                    <span className={`text-sm font-bold ${getStockColor(selectedProduct.stock, selectedProduct.min_stock)}`}>
+                      {selectedProduct.stock} units
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Minimum Stock</span>
+                    <span className="text-sm font-semibold text-gray-900">{selectedProduct.min_stock} units</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card bg-gray-50">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Status</span>
+                    <div>
+                      {selectedProduct.stock === 0 ? (
+                        <span className="badge badge-danger">Out of Stock</span>
+                      ) : selectedProduct.stock <= selectedProduct.min_stock ? (
+                        <span className="badge badge-warning">Low Stock</span>
+                      ) : (
+                        <span className="badge badge-success">In Stock</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Supplier</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {selectedProduct.supplier_id 
+                        ? suppliers.find(s => s.id === selectedProduct.supplier_id)?.name || 'Unknown'
+                        : 'Not assigned'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Inventory Value</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {formatCurrency(selectedProduct.stock * selectedProduct.unit_price)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-gray-600">Created</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {selectedProduct.created_at ? new Date(selectedProduct.created_at).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Movement History Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Movement History</h3>
+              
+              {loadingMovements ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-700 rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-gray-600 text-sm">Loading movements...</p>
+                </div>
+              ) : movements.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <p className="text-gray-600 font-medium">No movement history available</p>
+                  <p className="text-gray-500 text-sm mt-1">Movement tracking coming soon</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {movements.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-2 h-2 rounded-full ${m.type.includes('Sale') || m.type.includes('salida') ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{m.type}</p>
+                          <p className="text-sm text-gray-600">{m.notes || 'No notes'}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900">{m.quantity > 0 ? '+' : ''}{m.quantity} units</p>
+                        <p className="text-sm text-gray-500">{new Date(m.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Full movement tracking with sales and purchase integration will be available in the next update.
+                </p>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full btn-secondary"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -237,19 +429,24 @@ export default function ProductsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {canDelete ? (
+                      <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => handleDelete(p.id)}
-                          className="text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1.5 rounded-lg transition-colors duration-150"
-                          title="Delete product"
+                          onClick={() => openProductDetail(p)}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1.5 rounded-lg transition-colors duration-150"
+                          title="View details"
                         >
-                          Delete
+                          View
                         </button>
-                      ) : (
-                        <span className="text-gray-400 text-sm px-3 py-1.5">
-                          (No permission)
-                        </span>
-                      )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            className="text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1.5 rounded-lg transition-colors duration-150"
+                            title="Delete product"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
