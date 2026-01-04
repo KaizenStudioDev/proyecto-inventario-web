@@ -11,8 +11,8 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
 
-  // Check if user is tester (view-only mode)
-  const isTester = profile?.role === 'tester';
+  // Check if user is tester or demo (view-only mode)
+  const isTester = profile?.role === 'tester' || profile?.is_test_user;
 
   useEffect(() => {
     loadCustomers();
