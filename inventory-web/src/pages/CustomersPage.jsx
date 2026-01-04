@@ -80,10 +80,10 @@ export default function CustomersPage() {
             ) : (
               customers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{customer.nombre}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{customer.name || customer.nombre}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{customer.email || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{customer.telefono || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{customer.direccion || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{customer.phone || customer.telefono || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{customer.address || customer.direccion || '—'}</td>
                   <td className="px-6 py-4 text-sm text-right">
                     <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                   </td>

@@ -80,10 +80,10 @@ export default function SuppliersPage() {
             ) : (
               suppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{supplier.nombre}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{supplier.name || supplier.nombre}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{supplier.email || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{supplier.telefono || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{supplier.direccion || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{supplier.phone || supplier.telefono || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{supplier.address || supplier.direccion || '—'}</td>
                   <td className="px-6 py-4 text-sm text-right">
                     <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                   </td>

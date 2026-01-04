@@ -91,7 +91,7 @@ export function useCustomers() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from('customers').select('*').order('name');
+    const { data } = await supabase.from('clientes').select('*').order('nombre');
     setCustomers(data || []);
     setLoading(false);
   }
@@ -107,7 +107,7 @@ export function useSuppliers() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from('suppliers').select('*').order('name');
+    const { data } = await supabase.from('proveedores').select('*').order('nombre');
     setSuppliers(data || []);
     setLoading(false);
   }

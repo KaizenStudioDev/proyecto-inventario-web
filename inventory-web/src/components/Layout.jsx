@@ -38,6 +38,7 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
     { id: 'sales', label: 'Sales', icon: 'Sales', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
     { id: 'purchases', label: 'Purchases', icon: 'Purchases', roles: ['admin', 'contabilidad', 'tester'] },
     { id: 'alerts', label: 'Alerts', icon: 'Alerts', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'reports', label: 'Reports', icon: 'Reports', roles: ['admin', 'contabilidad', 'tester'] },
   ];
 
   // Filter pages based on user role
