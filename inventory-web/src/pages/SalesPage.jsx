@@ -25,18 +25,14 @@ export default function SalesPage() {
     setSales(data || []);
   }
 
-  // Calculate sales metrics
-  const salesThisMonth = sales.filter(s => {
-    const saleDate = new Date(s.created_at);
-    const now = new Date();
-    return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
-  });
+  // Calculate sales metrics - use all completed sales regardless of month
+  const completedSales = sales.filter(s => s.status === 'COMPLETED').length;
   
-  const totalSalesAmount = salesThisMonth
-    .filter(s => s.estado === 'COMPLETED')
+  const totalSalesAmount = sales
+    .filter(s => s.status === 'COMPLETED')
     .reduce((sum, s) => sum + (s.total || 0), 0);
   
-  const completedSales = salesThisMonth.filter(s => s.estado === 'COMPLETED').length;
+  const averageSaleAmount = completedSales > 0 ? totalSalesAmount / completedSales : 0;
 
   // If profile not loaded yet, show loading
   if (!profile) {
@@ -157,21 +153,21 @@ export default function SalesPage() {
       {/* Sales Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="stat-card">
-          <div className="text-xs uppercase tracking-wide text-gray-500">Sales This Month</div>
+          <div className="text-xs uppercase tracking-wide text-gray-500">Total Sales Amount</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{formatCurrency(totalSalesAmount)}</div>
           <div className="text-[11px] text-gray-500 mt-1">{completedSales} transactions</div>
         </div>
         <div className="stat-card">
           <div className="text-xs uppercase tracking-wide text-gray-500">Average Sale</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">
-            {completedSales > 0 ? formatCurrency(totalSalesAmount / completedSales) : formatCurrency(0)}
+            {formatCurrency(averageSaleAmount)}
           </div>
           <div className="text-[11px] text-gray-500 mt-1">Per transaction</div>
         </div>
         <div className="stat-card">
           <div className="text-xs uppercase tracking-wide text-gray-500">Total Sales</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{sales.length}</div>
-          <div className="text-[11px] text-gray-500 mt-1">All time</div>
+          <div className="text-[11px] text-gray-500 mt-1">All records</div>
         </div>
       </div>
 

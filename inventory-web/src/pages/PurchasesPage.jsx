@@ -25,23 +25,39 @@ export default function PurchasesPage() {
     loadPurchases();
   }, []);
 
+  // Auto-select supplier when product is selected
+  useEffect(() => {
+    if (selectedProduct) {
+      const product = products.find(p => p.id === selectedProduct);
+      if (product && product.supplier_id) {
+        setSelectedSupplier(product.supplier_id);
+      }
+    }
+  }, [selectedProduct, products]);
+
+  // Clear product selection when supplier changes (to avoid mismatches)
+  useEffect(() => {
+    if (selectedProduct) {
+      const product = products.find(p => p.id === selectedProduct);
+      if (product && selectedSupplier && product.supplier_id !== selectedSupplier) {
+        setSelectedProduct('');
+      }
+    }
+  }, [selectedSupplier, selectedProduct, products]);
+
   async function loadPurchases() {
     const { data } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
     setPurchases(data || []);
   }
 
-  // Calculate purchase metrics
-  const purchasesThisMonth = purchases.filter(p => {
-    const purchaseDate = new Date(p.created_at);
-    const now = new Date();
-    return purchaseDate.getMonth() === now.getMonth() && purchaseDate.getFullYear() === now.getFullYear();
-  });
+  // Calculate purchase metrics - use all received purchases regardless of month
+  const receivedPurchases = purchases.filter(p => p.status === 'RECEIVED').length;
   
-  const totalPurchasesAmount = purchasesThisMonth
-    .filter(p => p.estado === 'RECEIVED')
+  const totalPurchasesAmount = purchases
+    .filter(p => p.status === 'RECEIVED')
     .reduce((sum, p) => sum + (p.total || 0), 0);
   
-  const receivedPurchases = purchasesThisMonth.filter(p => p.estado === 'RECEIVED').length;
+  const averagePurchaseAmount = receivedPurchases > 0 ? totalPurchasesAmount / receivedPurchases : 0;
 
   // If profile not loaded yet, show loading
   if (!profile) {
@@ -135,7 +151,12 @@ export default function PurchasesPage() {
     description: s.contact_person || '',
   }));
 
-  const productOptions = products.map(p => ({
+  // Filter products by selected supplier if one is selected
+  const filteredProducts = selectedSupplier 
+    ? products.filter(p => p.supplier_id === selectedSupplier)
+    : products;
+
+  const productOptions = filteredProducts.map(p => ({
     value: p.id,
     label: p.name,
     description: `Current stock: ${p.stock} units`,
@@ -158,21 +179,21 @@ export default function PurchasesPage() {
       {/* Purchases Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="stat-card">
-          <div className="text-xs uppercase tracking-wide text-gray-500">Purchases This Month</div>
+          <div className="text-xs uppercase tracking-wide text-gray-500">Total Purchases Amount</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{formatCurrency(totalPurchasesAmount)}</div>
           <div className="text-[11px] text-gray-500 mt-1">{receivedPurchases} orders received</div>
         </div>
         <div className="stat-card">
           <div className="text-xs uppercase tracking-wide text-gray-500">Average Purchase</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">
-            {receivedPurchases > 0 ? formatCurrency(totalPurchasesAmount / receivedPurchases) : formatCurrency(0)}
+            {formatCurrency(averagePurchaseAmount)}
           </div>
           <div className="text-[11px] text-gray-500 mt-1">Per order</div>
         </div>
         <div className="stat-card">
           <div className="text-xs uppercase tracking-wide text-gray-500">Total Purchases</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{purchases.length}</div>
-          <div className="text-[11px] text-gray-500 mt-1">All time</div>
+          <div className="text-[11px] text-gray-500 mt-1">All records</div>
         </div>
       </div>
 

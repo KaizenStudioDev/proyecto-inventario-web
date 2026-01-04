@@ -5,6 +5,8 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
 
   useEffect(() => {
@@ -32,6 +34,32 @@ export default function CustomersPage() {
     if (!error) {
       setFormData({ name: '', email: '', phone: '', address: '' });
       setShowAddModal(false);
+      loadCustomers();
+    }
+  }
+
+  function openEditModal(customer) {
+    setEditingCustomer(customer);
+    setFormData({
+      name: customer.name || '',
+      email: customer.email || '',
+      phone: customer.phone || '',
+      address: customer.address || '',
+    });
+    setShowEditModal(true);
+  }
+
+  async function handleEditCustomer(e) {
+    e.preventDefault();
+    const { error } = await supabase
+      .from('customers')
+      .update(formData)
+      .eq('id', editingCustomer.id);
+    
+    if (!error) {
+      setFormData({ name: '', email: '', phone: '', address: '' });
+      setEditingCustomer(null);
+      setShowEditModal(false);
       loadCustomers();
     }
   }
@@ -90,7 +118,11 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 text-sm text-gray-700">{customer.phone || customer.telefono || '—'}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{customer.address || customer.direccion || '—'}</td>
                   <td className="px-6 py-4 text-sm text-right">
-                    <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                    <button 
+                      onClick={() => openEditModal(customer)}
+                      className="text-blue-600 hover:text-blue-800 font-medium">
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))
@@ -148,6 +180,62 @@ export default function CustomersPage() {
                 </button>
                 <button type="submit" className="btn-primary flex-1">
                   Add customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {showEditModal && editingCustomer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit customer</h2>
+            <form onSubmit={handleEditCustomer} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="input-field"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="input-field"
+                  rows="2"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => { setShowEditModal(false); setEditingCustomer(null); }} className="btn-secondary flex-1">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary flex-1">
+                  Save changes
                 </button>
               </div>
             </form>
