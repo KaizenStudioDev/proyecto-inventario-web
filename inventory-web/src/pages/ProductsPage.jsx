@@ -59,8 +59,8 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Products</h1>
-          <p className="text-gray-600">Manage your inventory catalog</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">Product Catalog</h1>
+          <p className="text-gray-600">Master data for all sellable items</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -72,8 +72,7 @@ export default function ProductsPage() {
           }`}
           title={!canCreate ? 'Only Admin and Tester can create products' : ''}
         >
-          <span className="text-xl">+</span>
-          <span>Add Product</span>
+          <span className="text-sm font-semibold">Add product</span>
         </button>
       </div>
 
@@ -82,24 +81,25 @@ export default function ProductsPage() {
         <div className="relative">
           <input
             type="text"
-            placeholder="🔍 Search products by name or SKU..."
+            placeholder="Search by name or SKU"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="input-field pl-12"
           />
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">Search</span>
         </div>
       </div>
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl animate-scale-in">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center text-white text-2xl">
-                📦
+          <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-lg animate-scale-in border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Create</p>
+                <h2 className="text-2xl font-bold text-gray-900">New product</h2>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">New Product</h2>
+              <span className="text-xs text-gray-500">Catalog</span>
             </div>
             
             <form onSubmit={handleCreate} className="space-y-4">
@@ -166,7 +166,7 @@ export default function ProductsPage() {
               
               <div className="flex gap-3 pt-4">
                 <button type="submit" disabled={submitting} className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                  {submitting ? 'Creating...' : 'Create Product'}
+                  {submitting ? 'Creating...' : 'Create product'}
                 </button>
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 btn-secondary">
                   Cancel
@@ -187,41 +187,33 @@ export default function ProductsPage() {
       <div className="card overflow-hidden p-0">
         {loading ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-700 rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">Loading products...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-6xl mb-4">📦</p>
-            <p className="text-gray-600 font-medium">No products found</p>
-            <p className="text-gray-500 text-sm mt-1">Try adjusting your search or add a new product</p>
+            <p className="text-gray-700 font-semibold">No products found</p>
+            <p className="text-gray-500 text-sm mt-1">Adjust your search or add a new item.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Product</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">SKU</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Price</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Stock</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Min Stock</th>
-                  <th className="text-center px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                  <th className="text-center px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">Product</th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">SKU</th>
+                  <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">Price</th>
+                  <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">Stock</th>
+                  <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">Min Stock</th>
+                  <th className="text-center px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</th>
+                  <th className="text-center px-6 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {filteredProducts.map(p => (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-accent-100 rounded-lg flex items-center justify-center text-xl">
-                          📦
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{p.name}</p>
-                        </div>
-                      </div>
+                      <p className="font-semibold text-gray-900">{p.name}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">{p.sku}</span>
@@ -248,10 +240,10 @@ export default function ProductsPage() {
                       {canDelete ? (
                         <button
                           onClick={() => handleDelete(p.id)}
-                          className="text-red-600 hover:text-red-800 font-medium text-sm hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors duration-150"
+                          className="text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1.5 rounded-lg transition-colors duration-150"
                           title="Delete product"
                         >
-                          🗑️ Delete
+                          Delete
                         </button>
                       ) : (
                         <span className="text-gray-400 text-sm px-3 py-1.5">
@@ -270,10 +262,7 @@ export default function ProductsPage() {
       {/* Summary Footer */}
       <div className="flex items-center justify-between text-sm text-gray-600">
         <p>Showing {filteredProducts.length} of {products.length} products</p>
-        <p className="flex items-center gap-2">
-          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-          Database synced
-        </p>
+        <p className="text-gray-500">Data synced with database</p>
       </div>
     </div>
   );

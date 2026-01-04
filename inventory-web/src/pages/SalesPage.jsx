@@ -30,7 +30,7 @@ export default function SalesPage() {
     return (
       <div className="p-8 max-w-4xl mx-auto flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-2xl mb-3">⏳</p>
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-700 rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -45,9 +45,9 @@ export default function SalesPage() {
   if (!canViewSales) {
     return (
       <div className="p-8 max-w-4xl mx-auto">
-        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6 text-center">
-          <p className="text-xl font-bold text-red-900">🚫 Access Denied</p>
-          <p className="text-red-700 mt-2">Your role ({profile.role}) does not have permission to access Sales.</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-lg font-semibold text-red-900">Access denied</p>
+          <p className="text-red-700 mt-2">Your role ({profile.role}) does not have permission to access sales.</p>
         </div>
       </div>
     );
@@ -118,14 +118,12 @@ export default function SalesPage() {
   const customerOptions = customers.map(c => ({
     value: c.id,
     label: c.name,
-    icon: '👤',
     description: c.email || '',
   }));
 
   const productOptions = products.map(p => ({
     value: p.id,
     label: p.name,
-    icon: '📦',
     description: `Stock: ${p.stock} | Price: ${formatCurrency(p.unit_price)}`,
   }));
 
@@ -133,11 +131,11 @@ export default function SalesPage() {
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">💰 Sales</h1>
-        <p className="text-gray-600">Record and manage customer sales transactions</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">Sales</h1>
+        <p className="text-gray-600">Record and manage customer transactions</p>
         {!canCreateSales && (
-          <div className="mt-3 bg-amber-50 border-l-4 border-amber-400 px-4 py-3 text-sm text-amber-800">
-            <p className="font-semibold">📖 View Only Mode</p>
+          <div className="mt-3 bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+            <p className="font-semibold">View only mode</p>
             <p>Your role ({profile?.role}) can view sales but cannot create new ones.</p>
           </div>
         )}
@@ -147,10 +145,9 @@ export default function SalesPage() {
         {/* Create Sale - Left Panel (Only show if user can create) */}
         {canCreateSales && (
         <div className="card p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <span>➕</span> New Sale
-            </h2>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">New sale</h2>
+            <span className="text-xs text-gray-500">Customer & items</span>
           </div>
 
           <div className="p-6 space-y-4">
@@ -193,8 +190,7 @@ export default function SalesPage() {
               disabled={!selectedProduct}
               className="btn-primary w-full flex items-center justify-center gap-2"
             >
-              <span>➕</span>
-              <span>Add Item to Cart</span>
+              <span>Add item</span>
             </button>
 
             <div className="my-4 border-t-2 border-gray-200"></div>
@@ -202,20 +198,18 @@ export default function SalesPage() {
             {/* Items List */}
             <div>
               <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span>🛒</span>
-                Cart Items ({items.length})
+                Cart items ({items.length})
               </h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {items.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
-                    <p className="text-3xl mb-2">📭</p>
                     <p className="text-sm">No items added yet</p>
                   </div>
                 ) : (
                   items.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:shadow-md transition-shadow duration-200"
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 truncate">{item.product_name}</p>
@@ -225,10 +219,10 @@ export default function SalesPage() {
                       </div>
                       <button
                         onClick={() => handleRemoveItem(idx)}
-                        className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                        className="ml-2 text-red-600 hover:text-red-800 px-2 py-1 rounded-md"
                         title="Remove item"
                       >
-                        🗑️
+                        Remove
                       </button>
                     </div>
                   ))
@@ -237,9 +231,9 @@ export default function SalesPage() {
             </div>
 
             {/* Total Box */}
-            <div className="bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-300 rounded-xl p-4">
-              <p className="text-sm text-primary-700 font-medium mb-1">Total Amount</p>
-              <p className="text-3xl font-bold text-primary-600">{formatCurrency(total)}</p>
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+              <p className="text-sm text-gray-600 font-medium mb-1">Total amount</p>
+              <p className="text-2xl font-bold text-gray-900 text-right">{formatCurrency(total)}</p>
             </div>
 
             {/* Error Message */}
@@ -253,17 +247,16 @@ export default function SalesPage() {
             <button
               onClick={handleCreateSale}
               disabled={loading || !selectedCustomer || items.length === 0}
-              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-full py-3 px-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <span className="animate-spin">⏳</span>
+                  <span className="animate-spin">⌛</span>
                   <span>Processing...</span>
                 </>
               ) : (
                 <>
-                  <span>✅</span>
-                  <span>Complete Sale</span>
+                  <span>Complete sale</span>
                 </>
               )}
             </button>
@@ -273,34 +266,31 @@ export default function SalesPage() {
 
         {/* Sales List - Right Panel */}
         <div className="lg:col-span-2 card p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <span>📋</span> Recent Sales
-            </h2>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <h2 className="text-lg font-semibold text-gray-900">Recent sales</h2>
             <button
               onClick={loadSales}
-              className="text-white hover:bg-white/20 px-3 py-1 rounded-lg transition-colors text-sm font-medium"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900"
               title="Refresh sales list"
             >
-              🔄 Refresh
+              Refresh
             </button>
           </div>
 
           <div className="p-6">
             {sales.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-5xl mb-3">📭</p>
-                <p className="text-gray-500 font-medium">No sales recorded yet</p>
+                <p className="text-gray-700 font-medium">No sales recorded yet</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-gray-300">
-                      <th className="text-left px-4 py-3 text-sm font-bold text-gray-700">👤 Customer</th>
-                      <th className="text-right px-4 py-3 text-sm font-bold text-gray-700">💰 Total</th>
-                      <th className="text-center px-4 py-3 text-sm font-bold text-gray-700">✓ Status</th>
-                      <th className="text-left px-4 py-3 text-sm font-bold text-gray-700">📅 Date</th>
+                      <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Customer</th>
+                      <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">Total</th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-700">Status</th>
+                      <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Date</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -311,8 +301,8 @@ export default function SalesPage() {
                           key={sale.id}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
                         >
-                          <td className="px-4 py-3 font-semibold text-gray-900">{customer?.name || '❓ Unknown'}</td>
-                          <td className="px-4 py-3 text-right font-bold text-primary-600">{formatCurrency(sale.total)}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-900">{customer?.name || 'Unknown'}</td>
+                          <td className="px-4 py-3 text-right font-bold text-gray-900">{formatCurrency(sale.total)}</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
                               sale.status === 'COMPLETED'
@@ -321,7 +311,6 @@ export default function SalesPage() {
                                 ? 'bg-amber-100 text-amber-800'
                                 : 'bg-red-100 text-red-800'
                             }`}>
-                              {sale.status === 'COMPLETED' ? '✅' : sale.status === 'PENDING' ? '⏳' : '❌'}
                               {sale.status}
                             </span>
                           </td>

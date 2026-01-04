@@ -33,9 +33,11 @@ export default function Layout({ children, currentPage, setCurrentPage }) {
   const pages = [
     { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
     { id: 'products', label: 'Products', icon: 'Products', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'alerts', label: 'Alerts', icon: 'Alerts', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'customers', label: 'Customers', icon: 'Customers', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'suppliers', label: 'Suppliers', icon: 'Suppliers', roles: ['admin', 'contabilidad', 'tester'] },
     { id: 'sales', label: 'Sales', icon: 'Sales', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
     { id: 'purchases', label: 'Purchases', icon: 'Purchases', roles: ['admin', 'contabilidad', 'tester'] },
+    { id: 'alerts', label: 'Alerts', icon: 'Alerts', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
   ];
 
   // Filter pages based on user role

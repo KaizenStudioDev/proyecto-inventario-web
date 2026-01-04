@@ -78,11 +78,11 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
   }
 
   const stats = [
-    { label: 'Total Sales', value: formatCompactCurrency(metrics?.total_sales_completed || 0), icon: '💰', gradient: 'from-blue-500 to-blue-600', trend: '+12.5%' },
-    { label: 'Total Purchases', value: formatCompactCurrency(metrics?.total_purchases_received || 0), icon: '🛒', gradient: 'from-purple-500 to-purple-600', trend: '+8.2%' },
-    { label: 'Inventory Value', value: formatCompactCurrency(metrics?.inventory_value || 0), icon: '💎', gradient: 'from-green-500 to-green-600', trend: '+5.7%' },
-    { label: 'In Stock', value: formatCompactNumber(metrics?.available_product_count || 0), icon: '📦', gradient: 'from-amber-500 to-amber-600', trend: 'Good' },
-    { label: 'Out of Stock', value: formatCompactNumber(metrics?.out_of_stock_count || 0), icon: '⚠️', gradient: 'from-red-500 to-red-600', trend: 'Alert' },
+    { label: 'Total Sales', value: formatCompactCurrency(metrics?.total_sales_completed || 0), fullValue: formatCurrency(metrics?.total_sales_completed || 0), context: 'Month to date' },
+    { label: 'Total Purchases', value: formatCompactCurrency(metrics?.total_purchases_received || 0), fullValue: formatCurrency(metrics?.total_purchases_received || 0), context: 'Month to date' },
+    { label: 'Inventory Value', value: formatCompactCurrency(metrics?.inventory_value || 0), fullValue: formatCurrency(metrics?.inventory_value || 0), context: 'Book value' },
+    { label: 'Products In Stock', value: formatCompactNumber(metrics?.available_product_count || 0), fullValue: (metrics?.available_product_count || 0).toLocaleString(), context: 'Active SKUs' },
+    { label: 'Out of Stock', value: formatCompactNumber(metrics?.out_of_stock_count || 0), fullValue: (metrics?.out_of_stock_count || 0).toLocaleString(), context: 'Requires action' },
   ];
 
   return (
@@ -90,22 +90,21 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your business overview</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Executive Overview</h1>
+          <p className="text-gray-600">Operational snapshot for decision-making</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="hidden md:flex items-center gap-2 bg-white hover:bg-gray-50 px-4 py-2 rounded-xl shadow-soft transition-colors disabled:opacity-50"
+            className="hidden md:inline-flex items-center gap-2 btn-secondary"
             title="Refresh dashboard"
           >
-            <span className={`text-xl ${refreshing ? 'animate-spin' : ''}`}>🔄</span>
-            <span className="text-sm font-medium text-gray-700">Refresh</span>
+            <span className={`text-sm font-semibold ${refreshing ? 'animate-spin' : ''}`}>↻</span>
+            <span className="text-sm font-medium">Refresh</span>
           </button>
-          <div className="hidden md:flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-soft">
-            <span className="text-2xl">📅</span>
-            <span className="text-sm font-medium text-gray-700">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <div className="hidden md:flex items-center gap-2 bg-white px-3 py-2 rounded-md border border-gray-200 text-xs text-gray-600">
+            <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
         </div>
       </div>
@@ -116,19 +115,13 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="stat-card bg-gradient-to-br"
-              style={{ backgroundImage: `linear-gradient(135deg, var(--tw-gradient-stops))` }}
+              className="stat-card cursor-help"
+              title={`${stat.label}: ${stat.fullValue} COP`}
             >
-              <div className={`bg-gradient-to-br ${stat.gradient} rounded-xl p-6 relative overflow-hidden`}>
-                <div className="absolute top-0 right-0 text-6xl opacity-10">{stat.icon}</div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">{stat.icon}</span>
-                    <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">{stat.trend}</span>
-                  </div>
-                  <p className="text-sm font-medium opacity-90 mb-1">{stat.label}</p>
-                  <p className="text-2xl lg:text-3xl font-bold">{stat.value}</p>
-                </div>
+              <div className="flex flex-col gap-3">
+                <div className="text-xs uppercase tracking-wide text-gray-500">{stat.label}</div>
+                <div className="text-2xl lg:text-3xl font-bold text-center">{stat.value}</div>
+                <div className="text-[11px] text-gray-500">{stat.context}</div>
               </div>
             </div>
           ))}
@@ -137,22 +130,22 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
 
       {/* Low Stock Alerts Section */}
       {lowStockProducts.length > 0 && (
-        <div className="card bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200">
+        <div className="card border border-amber-200 bg-white">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-xl">⚠️</span>
+              <div className="w-10 h-10 rounded-md border border-amber-200 bg-amber-50 flex items-center justify-center text-amber-700 text-sm font-semibold">
+                Alert
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Stock Alerts</h2>
-                <p className="text-xs text-gray-600">{lowStockProducts.length} products need attention</p>
+                <h2 className="text-lg font-semibold text-gray-900">Stock Attention</h2>
+                <p className="text-xs text-gray-600">{lowStockProducts.length} products below threshold</p>
               </div>
             </div>
             <button
               onClick={() => setCurrentPage('alerts')}
-              className="text-sm font-semibold text-red-600 hover:text-red-700 hover:underline"
+              className="text-sm font-semibold text-amber-700 hover:text-amber-800"
             >
-              View All →
+              View all
             </button>
           </div>
           
@@ -160,25 +153,24 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
             {lowStockProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white rounded-lg p-4 border border-red-200 hover:shadow-md transition-shadow"
+                className="bg-white rounded-md p-4 border border-gray-200"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <span className="text-2xl">📦</span>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                  <span className="text-sm font-semibold text-gray-700">{product.sku}</span>
+                  <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${
                     product.stock === 0 
                       ? 'bg-red-100 text-red-700' 
-                      : 'bg-amber-100 text-amber-700'
+                      : 'bg-amber-50 text-amber-700'
                   }`}>
-                    {product.stock === 0 ? 'OUT' : 'LOW'}
+                    {product.stock === 0 ? 'Out' : 'Low'}
                   </span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm mb-1 truncate" title={product.name}>
+                <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate" title={product.name}>
                   {product.name}
                 </h3>
-                <p className="text-xs text-gray-500 mb-2">SKU: {product.sku}</p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Stock:</span>
-                  <span className={`font-bold ${product.stock === 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                <div className="flex items-center justify-between text-xs text-gray-600">
+                  <span>Stock / Min</span>
+                  <span className={`font-semibold ${product.stock === 0 ? 'text-red-700' : 'text-amber-700'}`}>
                     {product.stock} / {product.min_stock}
                   </span>
                 </div>
@@ -192,50 +184,46 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Stats */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-              <span className="text-xl">📊</span>
-            </div>
-            <h2 className="text-lg font-semibold text-gray-900">Financial Insights</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Financial Summary</h2>
+            <span className="text-xs text-gray-500">COP</span>
           </div>
           <ul className="space-y-3">
-            <li className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Gross Profit</span>
-              <span className="font-semibold text-green-600">{formatCurrency((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0))}</span>
+            <li className="flex justify-between items-center py-2 border-b border-gray-100 text-sm text-gray-700">
+              <span>Gross Profit</span>
+              <span className="font-semibold text-gray-900 text-right">{formatCurrency((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0))}</span>
             </li>
-            <li className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Profit Margin</span>
-              <span className="font-semibold text-blue-600">{metrics?.total_sales_completed > 0 ? ((((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0)) / metrics.total_sales_completed) * 100).toFixed(1) : 0}%</span>
+            <li className="flex justify-between items-center py-2 border-b border-gray-100 text-sm text-gray-700">
+              <span>Profit Margin</span>
+              <span className="font-semibold text-gray-900 text-right">{metrics?.total_sales_completed > 0 ? ((((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0)) / metrics.total_sales_completed) * 100).toFixed(1) : 0}%</span>
             </li>
-            <li className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-600">Stock Turnover</span>
-              <span className="badge badge-success">Excellent</span>
+            <li className="flex justify-between items-center py-2 text-sm text-gray-700">
+              <span>Stock Turnover</span>
+              <span className="badge badge-success">Healthy</span>
             </li>
           </ul>
         </div>
 
         {/* System Status */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
-              <span className="text-xl">✅</span>
-            </div>
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">System Status</h2>
+            <span className="text-xs text-green-700 font-semibold">Stable</span>
           </div>
-          <ul className="space-y-3">
+          <ul className="space-y-3 text-sm text-gray-700">
             <li className="flex items-center gap-3 py-2">
-              <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-sm text-gray-700">Database Connected</span>
+              <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
+              <span>Database connectivity</span>
               <span className="ml-auto badge badge-success">Live</span>
             </li>
             <li className="flex items-center gap-3 py-2">
-              <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-sm text-gray-700">RLS Policies Active</span>
-              <span className="ml-auto badge badge-success">Secure</span>
+              <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
+              <span>RLS policies</span>
+              <span className="ml-auto badge badge-success">Enforced</span>
             </li>
             <li className="flex items-center gap-3 py-2">
-              <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-sm text-gray-700">Stock Tracking</span>
+              <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
+              <span>Stock tracking</span>
               <span className="ml-auto badge badge-success">Enabled</span>
             </li>
           </ul>
@@ -243,40 +231,38 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
 
         {/* Quick Actions */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center">
-              <span className="text-xl">⚡</span>
-            </div>
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+            <span className="text-xs text-gray-500">Shortcuts</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 text-sm">
             <button 
               onClick={() => setCurrentPage('alerts')}
-              className="w-full bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+              className="w-full justify-between border border-amber-200 text-amber-800 bg-amber-50 hover:bg-amber-100 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              <span>🚨 View Low Stock Items</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              Stock alerts
+              <span>→</span>
             </button>
             <button 
               onClick={() => setShowQuickAddModal(true)}
-              className="w-full bg-gradient-to-r from-primary-50 to-primary-100 hover:from-primary-100 hover:to-primary-200 text-primary-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+              className="w-full justify-between border border-gray-200 text-gray-800 bg-white hover:bg-gray-50 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              <span>📦 Quick Add Product</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              Quick add product
+              <span>→</span>
             </button>
             <button 
               onClick={() => setCurrentPage('sales')}
-              className="w-full bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+              className="w-full justify-between border border-blue-200 text-blue-800 bg-blue-50 hover:bg-blue-100 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              <span>💰 Record New Sale</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              Record sale
+              <span>→</span>
             </button>
             <button 
               onClick={() => setCurrentPage('purchases')}
-              className="w-full bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-700 font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group"
+              className="w-full justify-between border border-green-200 text-green-800 bg-green-50 hover:bg-green-100 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              <span>🛒 Record New Purchase</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              Record purchase
+              <span>→</span>
             </button>
           </div>
         </div>

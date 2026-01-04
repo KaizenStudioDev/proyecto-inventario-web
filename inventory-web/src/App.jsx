@@ -4,6 +4,8 @@ import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
+import CustomersPage from './pages/CustomersPage';
+import SuppliersPage from './pages/SuppliersPage';
 import AlertsPage from './pages/AlertsPage';
 import SalesPage from './pages/SalesPage';
 import PurchasesPage from './pages/PurchasesPage';
@@ -28,6 +30,10 @@ export default function App() {
         return <DashboardPage setCurrentPage={setCurrentPage} />;
       case 'products':
         return <ProductsPage />;
+      case 'customers':
+        return <CustomersPage />;
+      case 'suppliers':
+        return <SuppliersPage />;
       case 'alerts':
         return <AlertsPage />;
       case 'sales':

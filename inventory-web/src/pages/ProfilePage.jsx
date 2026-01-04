@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
       if (updateError) throw updateError;
 
-      setSuccess('✅ Profile updated successfully!');
+      setSuccess('Profile updated successfully');
       
       // Refresh page after 1.5s to show updated data
       setTimeout(() => {
@@ -56,22 +56,12 @@ export default function ProfilePage() {
 
   const getRoleLabel = (role) => {
     const labels = {
-      admin: '👑 Admin',
-      vendedor: '💼 Vendedor',
-      contabilidad: '📊 Contabilidad',
-      tester: '🧪 Tester'
+      admin: 'Admin',
+      vendedor: 'Vendedor',
+      contabilidad: 'Contabilidad',
+      tester: 'Tester'
     };
     return labels[role] || role;
-  };
-
-  const getRoleColor = (role) => {
-    const colors = {
-      admin: 'from-red-500 to-red-600',
-      vendedor: 'from-blue-500 to-blue-600',
-      contabilidad: 'from-green-500 to-green-600',
-      tester: 'from-purple-500 to-purple-600'
-    };
-    return colors[role] || 'from-gray-500 to-gray-600';
   };
 
   const isTestAccount = profile?.is_test_user || false;
@@ -80,20 +70,20 @@ export default function ProfilePage() {
     <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">👤 My Profile</h1>
-        <p className="text-gray-600">Manage your account information</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">Profile Settings</h1>
+        <p className="text-gray-600">Manage your account data and access information</p>
       </div>
 
       {/* Profile Card */}
       <div className="card p-0 overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-600 to-accent-600 text-white px-6 py-8">
+        <div className="bg-white border-b border-gray-200 px-6 py-8">
           <div className="flex items-center gap-6">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-bold overflow-hidden">
+            <div className="w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-3xl font-semibold overflow-hidden">
               {form.avatar_url ? (
                 <img src={form.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-white">
+                <span className="text-gray-700">
                   {(form.full_name || user?.email || '?')[0].toUpperCase()}
                 </span>
               )}
@@ -102,14 +92,14 @@ export default function ProfilePage() {
             {/* Info */}
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-1">{form.full_name || 'No Name Set'}</h2>
-              <p className="text-white/80 text-sm mb-3">{user?.email}</p>
+              <p className="text-gray-600 text-sm mb-3">{user?.email}</p>
               <div className="flex items-center gap-2">
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRoleColor(profile?.role || 'tester')}`}>
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-gray-700 bg-gray-200 border border-gray-300">
                   {getRoleLabel(profile?.role || 'tester')}
                 </span>
                 {isTestAccount && (
-                  <span className="inline-block px-3 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full">
-                    🧪 TEST ACCOUNT
+                  <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full border border-amber-200">
+                    Demo Account
                   </span>
                 )}
               </div>
@@ -120,9 +110,9 @@ export default function ProfilePage() {
         {/* Edit Form */}
         <div className="p-6">
           {isTestAccount && (
-            <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 px-4 py-3 text-sm">
-              <p className="font-semibold text-yellow-900">🔒 Read-Only Account</p>
-              <p className="text-yellow-800">This is a demo account. Profile editing is disabled.</p>
+            <div className="mb-6 bg-amber-50 border border-amber-200 px-4 py-3 text-sm rounded-lg">
+              <p className="font-semibold text-amber-900">Read-Only Account</p>
+              <p className="text-amber-700">Demo accounts cannot be modified. Contact your administrator.</p>
             </div>
           )}
 
@@ -138,7 +128,7 @@ export default function ProfilePage() {
                 onChange={e => setForm({ ...form, full_name: e.target.value })}
                 disabled={isTestAccount}
                 className="input-field"
-                placeholder="Enter your full name"
+                placeholder="Your full name"
               />
             </div>
 
@@ -153,13 +143,13 @@ export default function ProfilePage() {
                 disabled
                 className="input-field bg-gray-100 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+              <p className="text-xs text-gray-500 mt-1">Managed by system administrator</p>
             </div>
 
             {/* Role (Read-only) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Role
+                Role / Permission Level
               </label>
               <input
                 type="text"
@@ -167,7 +157,7 @@ export default function ProfilePage() {
                 disabled
                 className="input-field bg-gray-100 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">Role is assigned by administrators</p>
+              <p className="text-xs text-gray-500 mt-1">Request changes to an administrator</p>
             </div>
 
             {/* Avatar URL */}
@@ -181,23 +171,23 @@ export default function ProfilePage() {
                 onChange={e => setForm({ ...form, avatar_url: e.target.value })}
                 disabled={isTestAccount}
                 className="input-field"
-                placeholder="https://example.com/avatar.jpg"
+                placeholder="https://url-to-your-image.jpg"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Provide a URL to your profile picture (leave blank for default)
+                Direct link to your profile image
               </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             {/* Success Message */}
             {success && (
-              <div className="bg-green-50 border-2 border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
                 {success}
               </div>
             )}
@@ -210,13 +200,12 @@ export default function ProfilePage() {
             >
               {loading ? (
                 <>
-                  <span className="animate-spin">⏳</span>
+                  <span className="animate-spin">⌛</span>
                   <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <span>💾</span>
-                  <span>Save Changes</span>
+                  <span>Save changes</span>
                 </>
               )}
             </button>
@@ -225,13 +214,16 @@ export default function ProfilePage() {
       </div>
 
       {/* Account Info Card */}
-      <div className="card p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">📋 Account Information</h3>
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Account Information</h3>
+          <span className="text-xs text-gray-500">System details</span>
+        </div>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between items-center py-2 border-b border-gray-200">
             <span className="text-gray-600">Account Type:</span>
             <span className="font-semibold text-gray-900">
-              {isTestAccount ? 'Demo Account' : 'Personal Account'}
+              {isTestAccount ? 'Demo Account' : 'Production Account'}
             </span>
           </div>
           <div className="flex justify-between items-center py-2">

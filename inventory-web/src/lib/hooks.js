@@ -144,6 +144,27 @@ export function formatCurrency(amount) {
   return '$' + Number(amount || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// Utility: Format currency with optional line break after millions for readability
+export function formatCurrencyMultiline(amount) {
+  const normalized = formatCurrency(amount);
+  const [symbol, rest] = [normalized.charAt(0), normalized.slice(1)];
+  const [whole, decimals] = rest.split('.');
+  const digits = whole.replace(/,/g, '');
+
+  // If 6 digits or fewer, keep single line
+  if (digits.length <= 6) return normalized;
+
+  // Insert line break before the last 6 digits
+  const splitIndex = digits.length - 6;
+  const head = digits.slice(0, splitIndex);
+  const tail = digits.slice(splitIndex);
+
+  const headWithCommas = head.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const tailWithCommas = tail.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  return `${symbol}${headWithCommas},\n${tailWithCommas}${decimals !== undefined ? `.${decimals}` : ''}`;
+}
+
 // Utility: Format large numbers compactly (K, M, B)
 export function formatCompactNumber(num) {
   const number = Number(num || 0);
