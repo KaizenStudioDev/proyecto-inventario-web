@@ -25,6 +25,19 @@ export default function SalesPage() {
     setSales(data || []);
   }
 
+  // Calculate sales metrics
+  const salesThisMonth = sales.filter(s => {
+    const saleDate = new Date(s.created_at);
+    const now = new Date();
+    return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
+  });
+  
+  const totalSalesAmount = salesThisMonth
+    .filter(s => s.estado === 'COMPLETED')
+    .reduce((sum, s) => sum + (s.total || 0), 0);
+  
+  const completedSales = salesThisMonth.filter(s => s.estado === 'COMPLETED').length;
+
   // If profile not loaded yet, show loading
   if (!profile) {
     return (
@@ -139,6 +152,27 @@ export default function SalesPage() {
             <p>Your role ({profile?.role}) can view sales but cannot create new ones.</p>
           </div>
         )}
+      </div>
+
+      {/* Sales Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="stat-card">
+          <div className="text-xs uppercase tracking-wide text-gray-500">Sales This Month</div>
+          <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{formatCurrency(totalSalesAmount)}</div>
+          <div className="text-[11px] text-gray-500 mt-1">{completedSales} transactions</div>
+        </div>
+        <div className="stat-card">
+          <div className="text-xs uppercase tracking-wide text-gray-500">Average Sale</div>
+          <div className="text-2xl lg:text-3xl font-bold text-center mt-2">
+            {completedSales > 0 ? formatCurrency(totalSalesAmount / completedSales) : formatCurrency(0)}
+          </div>
+          <div className="text-[11px] text-gray-500 mt-1">Per transaction</div>
+        </div>
+        <div className="stat-card">
+          <div className="text-xs uppercase tracking-wide text-gray-500">Total Sales</div>
+          <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{sales.length}</div>
+          <div className="text-[11px] text-gray-500 mt-1">All time</div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
