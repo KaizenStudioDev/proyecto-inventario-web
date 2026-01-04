@@ -78,23 +78,24 @@ export default function ReportsPage() {
   }
 
   async function generateSalesReport() {
-    const query = supabase
+    // Get sales with customer info
+    const { data: sales } = await supabase
       .from('sales')
-      .select('*, productos(name, sku), customers(name)');
+      .select(`
+        *,
+        customers(name),
+        sale_items(qty, unit_price, products(name, sku))
+      `)
+      .order('created_at', { ascending: false });
     
-    if (dateFrom) query.gte('created_at', dateFrom);
-    if (dateTo) query.lte('created_at', dateTo);
-    
-    const { data: sales } = await query;
-    
-    if (!sales) {
+    if (!sales || sales.length === 0) {
       setReportData({ type: 'sales', summary: {}, chartData: [], tableData: [] });
       return;
     }
     
     const totalSales = sales.length;
-    const totalRevenue = sales.reduce((sum, s) => sum + (s.total_price || 0), 0);
-    const completedSales = sales.filter(s => s.status === 'completed').length;
+    const totalRevenue = sales.reduce((sum, s) => sum + (s.total || 0), 0);
+    const completedSales = sales.filter(s => s.status === 'COMPLETED').length;
     
     // Group by month
     const byMonth = sales.reduce((acc, s) => {
@@ -103,43 +104,54 @@ export default function ReportsPage() {
         acc[month] = { month, count: 0, revenue: 0 };
       }
       acc[month].count++;
-      acc[month].revenue += s.total_price || 0;
+      acc[month].revenue += s.total || 0;
       return acc;
     }, {});
+    
+    // Flatten sale items for table
+    const tableData = [];
+    sales.forEach(sale => {
+      if (sale.sale_items && sale.sale_items.length > 0) {
+        sale.sale_items.forEach(item => {
+          tableData.push({
+            date: new Date(sale.created_at).toLocaleDateString(),
+            customer: sale.customers?.name || 'N/A',
+            product: item.products?.name || 'N/A',
+            quantity: item.qty,
+            totalPrice: item.qty * item.unit_price,
+            status: sale.status
+          });
+        });
+      }
+    });
     
     setReportData({
       type: 'sales',
       summary: { totalSales, totalRevenue, completedSales },
       chartData: Object.values(byMonth).slice(-6),
-      tableData: sales.map(s => ({
-        date: new Date(s.created_at).toLocaleDateString(),
-        customer: s.customers?.name || 'N/A',
-        product: s.productos?.name || 'N/A',
-        quantity: s.quantity,
-        totalPrice: s.total_price,
-        status: s.status
-      }))
+      tableData
     });
   }
 
   async function generatePurchasesReport() {
-    const query = supabase
+    // Get purchases with supplier info
+    const { data: purchases } = await supabase
       .from('purchases')
-      .select('*, productos(name, sku), suppliers(name)');
+      .select(`
+        *,
+        suppliers(name),
+        purchase_items(qty, unit_price, products(name, sku))
+      `)
+      .order('created_at', { ascending: false });
     
-    if (dateFrom) query.gte('created_at', dateFrom);
-    if (dateTo) query.lte('created_at', dateTo);
-    
-    const { data: purchases } = await query;
-    
-    if (!purchases) {
+    if (!purchases || purchases.length === 0) {
       setReportData({ type: 'purchases', summary: {}, chartData: [], tableData: [] });
       return;
     }
     
     const totalPurchases = purchases.length;
-    const totalCost = purchases.reduce((sum, p) => sum + (p.total_price || 0), 0);
-    const receivedPurchases = purchases.filter(p => p.status === 'received').length;
+    const totalCost = purchases.reduce((sum, p) => sum + (p.total || 0), 0);
+    const receivedPurchases = purchases.filter(p => p.status === 'RECEIVED').length;
     
     // Group by month
     const byMonth = purchases.reduce((acc, p) => {
@@ -148,36 +160,43 @@ export default function ReportsPage() {
         acc[month] = { month, count: 0, cost: 0 };
       }
       acc[month].count++;
-      acc[month].cost += p.total_price || 0;
+      acc[month].cost += p.total || 0;
       return acc;
     }, {});
+    
+    // Flatten purchase items for table
+    const tableData = [];
+    purchases.forEach(purchase => {
+      if (purchase.purchase_items && purchase.purchase_items.length > 0) {
+        purchase.purchase_items.forEach(item => {
+          tableData.push({
+            date: new Date(purchase.created_at).toLocaleDateString(),
+            supplier: purchase.suppliers?.name || 'N/A',
+            product: item.products?.name || 'N/A',
+            quantity: item.qty,
+            totalPrice: item.qty * item.unit_price,
+            status: purchase.status
+          });
+        });
+      }
+    });
     
     setReportData({
       type: 'purchases',
       summary: { totalPurchases, totalCost, receivedPurchases },
       chartData: Object.values(byMonth).slice(-6),
-      tableData: purchases.map(p => ({
-        date: new Date(p.created_at).toLocaleDateString(),
-        supplier: p.suppliers?.name || 'N/A',
-        product: p.productos?.name || 'N/A',
-        quantity: p.quantity,
-        totalPrice: p.total_price,
-        status: p.status
-      }))
+      tableData
     });
   }
 
   async function generateMovementsReport() {
-    const query = supabase
+    const { data: movements } = await supabase
       .from('product_movements')
-      .select('*, productos(name, sku)');
+      .select('*, products(name, sku)')
+      .order('created_at', { ascending: false })
+      .limit(500);
     
-    if (dateFrom) query.gte('created_at', dateFrom);
-    if (dateTo) query.lte('created_at', dateTo);
-    
-    const { data: movements } = await query.limit(500);
-    
-    if (!movements) {
+    if (!movements || movements.length === 0) {
       setReportData({ type: 'movements', summary: {}, chartData: [], tableData: [] });
       return;
     }
