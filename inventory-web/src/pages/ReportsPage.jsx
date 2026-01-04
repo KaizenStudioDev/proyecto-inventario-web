@@ -15,6 +15,18 @@ export default function ReportsPage() {
   // Permission check: admin and accounting can view all reports
   const canViewReports = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
 
+  const getDateRangeFilters = () => {
+    const from = dateFrom ? new Date(dateFrom) : null;
+    const to = dateTo ? new Date(dateTo) : null;
+    if (to) {
+      to.setHours(23, 59, 59, 999);
+    }
+    return {
+      from: from ? from.toISOString() : null,
+      to: to ? to.toISOString() : null,
+    };
+  };
+
   async function generateReport() {
     if (!canViewReports) return;
     
@@ -79,14 +91,20 @@ export default function ReportsPage() {
 
   async function generateSalesReport() {
     // Get sales with customer info
-    const { data: sales } = await supabase
+    const { from, to } = getDateRangeFilters();
+
+    let query = supabase
       .from('sales')
       .select(`
         *,
         customers(name),
         sale_items(qty, unit_price, products(name, sku))
-      `)
-      .order('created_at', { ascending: false });
+      `);
+
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data: sales } = await query.order('created_at', { ascending: false });
     
     if (!sales || sales.length === 0) {
       setReportData({ type: 'sales', summary: {}, chartData: [], tableData: [] });
@@ -135,14 +153,20 @@ export default function ReportsPage() {
 
   async function generatePurchasesReport() {
     // Get purchases with supplier info
-    const { data: purchases } = await supabase
+    const { from, to } = getDateRangeFilters();
+
+    let query = supabase
       .from('purchases')
       .select(`
         *,
         suppliers(name),
         purchase_items(qty, unit_price, products(name, sku))
-      `)
-      .order('created_at', { ascending: false });
+      `);
+
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data: purchases } = await query.order('created_at', { ascending: false });
     
     if (!purchases || purchases.length === 0) {
       setReportData({ type: 'purchases', summary: {}, chartData: [], tableData: [] });
@@ -190,9 +214,16 @@ export default function ReportsPage() {
   }
 
   async function generateMovementsReport() {
-    const { data: movements } = await supabase
+    const { from, to } = getDateRangeFilters();
+
+    let query = supabase
       .from('product_movements')
-      .select('*, products(name, sku)')
+      .select('*, products(name, sku)');
+
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data: movements } = await query
       .order('created_at', { ascending: false })
       .limit(500);
     
