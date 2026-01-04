@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../lib/hooks';
 
 export default function CustomersPage() {
+  const { profile } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
+
+  // Check if user is tester (view-only mode)
+  const isTester = profile?.role === 'tester';
 
   useEffect(() => {
     loadCustomers();
@@ -191,15 +196,25 @@ export default function CustomersPage() {
       {showEditModal && editingCustomer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit customer</h2>
-            <form onSubmit={handleEditCustomer} className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {isTester ? 'View customer' : 'Edit customer'}
+            </h2>
+            {isTester && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-xs text-yellow-800">
+                  <span className="font-semibold">View only:</span> Tester accounts cannot edit customer data.
+                </p>
+              </div>
+            )}
+            <form onSubmit={isTester ? (e) => e.preventDefault() : handleEditCustomer} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => !isTester && setFormData({ ...formData, name: e.target.value })}
+                  disabled={isTester}
+                  className={`input-field ${isTester ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   required
                 />
               </div>
@@ -208,8 +223,9 @@ export default function CustomersPage() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => !isTester && setFormData({ ...formData, email: e.target.value })}
+                  disabled={isTester}
+                  className={`input-field ${isTester ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 />
               </div>
               <div>
@@ -217,16 +233,18 @@ export default function CustomersPage() {
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => !isTester && setFormData({ ...formData, phone: e.target.value })}
+                  disabled={isTester}
+                  className={`input-field ${isTester ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <textarea
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => !isTester && setFormData({ ...formData, address: e.target.value })}
+                  disabled={isTester}
+                  className={`input-field ${isTester ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   rows="2"
                 />
               </div>
@@ -234,9 +252,11 @@ export default function CustomersPage() {
                 <button type="button" onClick={() => { setShowEditModal(false); setEditingCustomer(null); }} className="btn-secondary flex-1">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary flex-1">
-                  Save changes
-                </button>
+                {!isTester && (
+                  <button type="submit" className="btn-primary flex-1">
+                    Save changes
+                  </button>
+                )}
               </div>
             </form>
           </div>
