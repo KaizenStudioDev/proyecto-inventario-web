@@ -210,3 +210,31 @@ export function formatCompactCurrency(amount) {
   // 1B+
   return '$' + (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
 }
+
+// Custom hook: Fetch product movements
+export function useProductMovements(productId) {
+  const [movements, setMovements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    if (!productId) {
+      setMovements([]);
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    const { data } = await supabase
+      .from('product_movements')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    setMovements(data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, [productId]);
+  return { movements, loading, refetch: load };
+}

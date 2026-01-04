@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useProducts, getStockColor, formatCurrency, useAuth, useSuppliers } from '../lib/hooks';
+import { useProducts, getStockColor, formatCurrency, useAuth, useSuppliers, useProductMovements } from '../lib/hooks';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function ProductsPage() {
   const { profile } = useAuth();
@@ -9,12 +10,11 @@ export default function ProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const { movements, loading: loadingMovements, refetch: refetchMovements } = useProductMovements(selectedProduct?.id);
   const [form, setForm] = useState({ name: '', sku: '', category: '', supplier_id: '', unit_price: '', stock: 0, min_stock: 0 });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [movements, setMovements] = useState([]);
-  const [loadingMovements, setLoadingMovements] = useState(false);
 
   // Auto-generate SKU suggestion
   useEffect(() => {
@@ -69,17 +69,21 @@ export default function ProductsPage() {
   async function openProductDetail(product) {
     setSelectedProduct(product);
     setShowDetailModal(true);
-    
-    // Fetch movement history (mock for now - will be replaced with real movements table)
-    setLoadingMovements(true);
-    // TODO: Replace with real movements query when table is created
-    // For now, generate mock data from sales and purchases
-    const mockMovements = [
-      { id: 1, type: 'Initial Stock', quantity: product.stock, date: new Date().toISOString(), notes: 'System initialization' }
-    ];
-    setMovements(mockMovements);
-    setLoadingMovements(false);
   }
+
+  // Prepare chart data from movements (last 30 days)
+  const chartData = movements
+    .filter(m => {
+      const movementDate = new Date(m.created_at);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return movementDate >= thirtyDaysAgo;
+    })
+    .reverse()
+    .map(m => ({
+      date: new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      stock: m.stock_after
+    }));
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -317,6 +321,53 @@ export default function ProductsPage() {
 
             {/* Movement History Section */}
             <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Stock Over Time (Last 30 Days)</h3>
+              
+              {loadingMovements ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-700 rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-gray-600 text-sm">Loading data...</p>
+                </div>
+              ) : chartData.length > 1 ? (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        stroke="#9ca3af"
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        stroke="#9ca3af"
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#fff', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="stock" 
+                        stroke="#3b82f6" 
+                        strokeWidth={2}
+                        dot={{ fill: '#3b82f6', r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg mb-6">
+                  <p className="text-gray-600 font-medium">Not enough data for chart</p>
+                  <p className="text-gray-500 text-sm mt-1">Chart requires at least 2 data points</p>
+                </div>
+              )}
+
               <h3 className="text-lg font-bold text-gray-900 mb-4">Movement History</h3>
               
               {loadingMovements ? (
@@ -327,33 +378,34 @@ export default function ProductsPage() {
               ) : movements.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
                   <p className="text-gray-600 font-medium">No movement history available</p>
-                  <p className="text-gray-500 text-sm mt-1">Movement tracking coming soon</p>
+                  <p className="text-gray-500 text-sm mt-1">Movements will be tracked automatically</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
                   {movements.map((m) => (
                     <div key={m.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className={`w-2 h-2 rounded-full ${m.type.includes('Sale') || m.type.includes('salida') ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${
+                          m.movement_type === 'sale' || m.quantity < 0 ? 'bg-red-500' : 'bg-green-500'
+                        }`}></div>
                         <div>
-                          <p className="font-semibold text-gray-900">{m.type}</p>
+                          <p className="font-semibold text-gray-900 capitalize">{m.movement_type}</p>
                           <p className="text-sm text-gray-600">{m.notes || 'No notes'}</p>
+                          <p className="text-xs text-gray-500">
+                            Stock: {m.stock_before} → {m.stock_after}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">{m.quantity > 0 ? '+' : ''}{m.quantity} units</p>
-                        <p className="text-sm text-gray-500">{new Date(m.date).toLocaleDateString()}</p>
+                        <p className={`font-bold ${m.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {m.quantity > 0 ? '+' : ''}{m.quantity} units
+                        </p>
+                        <p className="text-sm text-gray-500">{new Date(m.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-              
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> Full movement tracking with sales and purchase integration will be available in the next update.
-                </p>
-              </div>
             </div>
 
             {/* Close Button */}
