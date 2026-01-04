@@ -80,7 +80,7 @@ export default function ReportsPage() {
   async function generateSalesReport() {
     const query = supabase
       .from('sales')
-      .select('*, productos(name, sku), clientes(nombre)');
+      .select('*, productos(name, sku), customers(name)');
     
     if (dateFrom) query.gte('created_at', dateFrom);
     if (dateTo) query.lte('created_at', dateTo);
@@ -113,7 +113,7 @@ export default function ReportsPage() {
       chartData: Object.values(byMonth).slice(-6),
       tableData: sales.map(s => ({
         date: new Date(s.created_at).toLocaleDateString(),
-        customer: s.clientes?.nombre || 'N/A',
+        customer: s.customers?.name || 'N/A',
         product: s.productos?.name || 'N/A',
         quantity: s.quantity,
         totalPrice: s.total_price,
@@ -125,7 +125,7 @@ export default function ReportsPage() {
   async function generatePurchasesReport() {
     const query = supabase
       .from('purchases')
-      .select('*, productos(name, sku), proveedores(nombre)');
+      .select('*, productos(name, sku), suppliers(name)');
     
     if (dateFrom) query.gte('created_at', dateFrom);
     if (dateTo) query.lte('created_at', dateTo);
@@ -158,7 +158,7 @@ export default function ReportsPage() {
       chartData: Object.values(byMonth).slice(-6),
       tableData: purchases.map(p => ({
         date: new Date(p.created_at).toLocaleDateString(),
-        supplier: p.proveedores?.nombre || 'N/A',
+        supplier: p.suppliers?.name || 'N/A',
         product: p.productos?.name || 'N/A',
         quantity: p.quantity,
         totalPrice: p.total_price,

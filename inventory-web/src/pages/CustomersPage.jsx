@@ -13,17 +13,22 @@ export default function CustomersPage() {
 
   async function loadCustomers() {
     setLoading(true);
-    const { data } = await supabase
-      .from('clientes')
+    const { data, error } = await supabase
+      .from('customers')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading customers:', error);
+    }
+    
     setCustomers(data || []);
     setLoading(false);
   }
 
   async function handleAddCustomer(e) {
     e.preventDefault();
-    const { error } = await supabase.from('clientes').insert([formData]);
+    const { error } = await supabase.from('customers').insert([formData]);
     if (!error) {
       setFormData({ name: '', email: '', phone: '', address: '' });
       setShowAddModal(false);

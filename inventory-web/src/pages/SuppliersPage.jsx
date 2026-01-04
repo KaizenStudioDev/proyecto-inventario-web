@@ -13,17 +13,22 @@ export default function SuppliersPage() {
 
   async function loadSuppliers() {
     setLoading(true);
-    const { data } = await supabase
-      .from('proveedores')
+    const { data, error } = await supabase
+      .from('suppliers')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading suppliers:', error);
+    }
+    
     setSuppliers(data || []);
     setLoading(false);
   }
 
   async function handleAddSupplier(e) {
     e.preventDefault();
-    const { error } = await supabase.from('proveedores').insert([formData]);
+    const { error } = await supabase.from('suppliers').insert([formData]);
     if (!error) {
       setFormData({ name: '', email: '', phone: '', address: '' });
       setShowAddModal(false);
