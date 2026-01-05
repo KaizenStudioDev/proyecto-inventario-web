@@ -216,33 +216,56 @@ export default function ReportsPage() {
   async function generateMovementsReport() {
     const { from, to } = getDateRangeFilters();
 
-    let query = supabase
+    // Primary: product_movements (new table)
+    let queryProduct = supabase
       .from('product_movements')
       .select('*, products(name, sku)');
 
-    if (from) query = query.gte('created_at', from);
-    if (to) query = query.lte('created_at', to);
+    if (from) queryProduct = queryProduct.gte('created_at', from);
+    if (to) queryProduct = queryProduct.lte('created_at', to);
 
-    const { data: movements } = await query
+    const { data: productMovements } = await queryProduct
       .order('created_at', { ascending: false })
       .limit(500);
+
+    // Fallback: stock_movements (existing table with data)
+    let queryStock = supabase
+      .from('stock_movements')
+      .select('*, products(name, sku)');
+
+    if (from) queryStock = queryStock.gte('created_at', from);
+    if (to) queryStock = queryStock.lte('created_at', to);
+
+    const { data: stockMovements } = await queryStock
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    const movements = [ ...(productMovements || []), ...(stockMovements || []) ]
+      .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 500);
     
     if (!movements || movements.length === 0) {
       setReportData({ type: 'movements', summary: {}, chartData: [], tableData: [] });
       return;
     }
     
-    const totalMovements = movements.length;
-    const stockIn = movements.filter(m => m.quantity > 0).reduce((sum, m) => sum + m.quantity, 0);
-    const stockOut = movements.filter(m => m.quantity < 0).reduce((sum, m) => sum + Math.abs(m.quantity), 0);
+    const normalized = movements.map(m => ({
+      ...m,
+      quantity: Number(m.quantity || 0),
+      movement_type: m.movement_type || 'Unknown',
+    }));
+
+    const totalMovements = normalized.length;
+    const stockIn = normalized.filter(m => m.quantity > 0).reduce((sum, m) => sum + m.quantity, 0);
+    const stockOut = normalized.filter(m => m.quantity < 0).reduce((sum, m) => sum + Math.abs(m.quantity), 0);
     
     // Group by type
-    const byType = movements.reduce((acc, m) => {
+    const byType = normalized.reduce((acc, m) => {
       const type = m.movement_type;
       if (!acc[type]) {
         acc[type] = { type, count: 0, quantity: 0 };
       }
-      acc[type].count++;
+      acc[type].count += 1;
       acc[type].quantity += m.quantity;
       return acc;
     }, {});
@@ -251,9 +274,9 @@ export default function ReportsPage() {
       type: 'movements',
       summary: { totalMovements, stockIn, stockOut },
       chartData: Object.values(byType),
-      tableData: movements.map(m => ({
+      tableData: normalized.map(m => ({
         date: new Date(m.created_at).toLocaleDateString(),
-        product: m.productos?.name || 'N/A',
+        product: m.products?.name || 'N/A',
         type: m.movement_type,
         quantity: m.quantity,
         stockBefore: m.stock_before,
