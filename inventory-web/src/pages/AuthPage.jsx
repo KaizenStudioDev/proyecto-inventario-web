@@ -73,15 +73,15 @@ export default function AuthPage({ onAuthSuccess }) {
             <div className="grid gap-2 text-sm text-gray-800">
               <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
                 <span className="font-medium">Admin</span>
-                <span className="text-gray-600">admin@demo</span>
+                <span className="text-gray-600">admin@demo.com</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
                 <span className="font-medium">Sales</span>
-                <span className="text-gray-600">sales@demo</span>
+                <span className="text-gray-600">sales@demo.com</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
                 <span className="font-medium">Accounting</span>
-                <span className="text-gray-600">accounting@demo</span>
+                <span className="text-gray-600">accounting@demo.com</span>
               </div>
               <p className="text-xs text-gray-500 mt-1">Password: Demo123 for all demo accounts.</p>
             </div>
