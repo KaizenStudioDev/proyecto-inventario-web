@@ -82,8 +82,14 @@ export default function SalesPage() {
   }
 
   async function handleCreateSale() {
-    if (!selectedCustomer || items.length === 0) {
-      setError('Select customer and add items');
+    // Validations with specific error messages
+    if (!selectedCustomer) {
+      setError('⚠️ Please select a customer before completing the sale');
+      return;
+    }
+    
+    if (items.length === 0) {
+      setError('⚠️ Please add at least one product to the cart');
       return;
     }
 
@@ -183,7 +189,7 @@ export default function SalesPage() {
           <div className="p-6 space-y-4">
             {/* Customer Select */}
             <ModernSelect
-              label="Select Customer"
+              label="Select Customer *"
               icon="👤"
               value={selectedCustomer}
               onChange={setSelectedCustomer}
@@ -268,8 +274,15 @@ export default function SalesPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              <div className="bg-red-50 border-2 border-red-500 text-red-800 px-4 py-3 rounded-xl text-sm font-medium animate-shake">
                 {error}
+              </div>
+            )}
+
+            {/* Validation warning when customer not selected */}
+            {!selectedCustomer && items.length > 0 && (
+              <div className="bg-amber-50 border-2 border-amber-400 text-amber-800 px-4 py-3 rounded-xl text-sm font-medium">
+                ⚠️ Please select a customer to complete this sale
               </div>
             )}
 
@@ -277,7 +290,8 @@ export default function SalesPage() {
             <button
               onClick={handleCreateSale}
               disabled={loading || !selectedCustomer || items.length === 0}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              title={!selectedCustomer ? 'Select a customer first' : items.length === 0 ? 'Add items to cart' : 'Complete sale'}
             >
               {loading ? (
                 <>
