@@ -16,11 +16,23 @@ export default function ReportsPage() {
   const canViewReports = ['admin', 'contabilidad', 'tester'].includes(profile?.role);
 
   const getDateRangeFilters = () => {
-    const from = dateFrom ? new Date(dateFrom) : null;
-    const to = dateTo ? new Date(dateTo) : null;
-    if (to) {
-      to.setHours(23, 59, 59, 999);
+    let from = null;
+    let to = null;
+    
+    // Parse dateFrom: treat as start of day in UTC
+    if (dateFrom) {
+      // dateFrom comes as YYYY-MM-DD from input[type="date"]
+      const [year, month, day] = dateFrom.split('-').map(Number);
+      from = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
     }
+    
+    // Parse dateTo: treat as end of day in UTC
+    if (dateTo) {
+      // dateTo comes as YYYY-MM-DD from input[type="date"]
+      const [year, month, day] = dateTo.split('-').map(Number);
+      to = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+    }
+    
     return {
       from: from ? from.toISOString() : null,
       to: to ? to.toISOString() : null,
@@ -216,57 +228,59 @@ export default function ReportsPage() {
   async function generateMovementsReport() {
     const { from, to } = getDateRangeFilters();
 
-    // Primary: product_movements (new table)
-    let queryProduct = supabase
-      .from('product_movements')
-      .select('*, products(name, sku)');
-
-    if (from) queryProduct = queryProduct.gte('created_at', from);
-    if (to) queryProduct = queryProduct.lte('created_at', to);
-
-    const { data: productMovements } = await queryProduct
-      .order('created_at', { ascending: false })
-      .limit(500);
-
-    // Fallback: stock_movements (existing table with data)
-    let queryStock = supabase
+    // Query stock_movements table (populated by triggers on sale_items/purchase_items)
+    let query = supabase
       .from('stock_movements')
-      .select('*, products(name, sku)');
+      .select('id, created_at, product_id, type, delta, previous_stock, new_stock, notes, products(name, sku)');
 
-    if (from) queryStock = queryStock.gte('created_at', from);
-    if (to) queryStock = queryStock.lte('created_at', to);
+    // Only apply date filters if specified
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
 
-    const { data: stockMovements } = await queryStock
+    const { data: movements, error } = await query
       .order('created_at', { ascending: false })
-      .limit(500);
+      .limit(1000);
 
-    const movements = [ ...(productMovements || []), ...(stockMovements || []) ]
-      .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 500);
-    
+    if (error) {
+      console.error('Error fetching movements:', error);
+      setReportData({ type: 'movements', summary: {}, chartData: [], tableData: [] });
+      return;
+    }
+
     if (!movements || movements.length === 0) {
       setReportData({ type: 'movements', summary: {}, chartData: [], tableData: [] });
       return;
     }
-    
-    const normalized = movements.map(m => ({
-      ...m,
-      quantity: Number(m.quantity || 0),
-      movement_type: m.movement_type || 'Unknown',
+
+    // Map directly from database records
+    const tableData = movements.map(m => ({
+      date: new Date(m.created_at).toLocaleDateString('es-ES', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      product: m.products?.name || `Product ${m.product_id}`,
+      type: (m.type || 'Unknown').toUpperCase(),
+      quantity: Number(m.delta || 0),
+      stockBefore: Number(m.previous_stock || 0),
+      stockAfter: Number(m.new_stock || 0),
+      notes: m.notes || '—'
     }));
 
-    const totalMovements = normalized.length;
-    const stockIn = normalized.filter(m => m.quantity > 0).reduce((sum, m) => sum + m.quantity, 0);
-    const stockOut = normalized.filter(m => m.quantity < 0).reduce((sum, m) => sum + Math.abs(m.quantity), 0);
+    const totalMovements = movements.length;
+    const stockIn = movements.filter(m => (m.delta || 0) > 0).reduce((sum, m) => sum + (m.delta || 0), 0);
+    const stockOut = movements.filter(m => (m.delta || 0) < 0).reduce((sum, m) => sum + Math.abs(m.delta || 0), 0);
     
-    // Group by type
-    const byType = normalized.reduce((acc, m) => {
-      const type = m.movement_type;
+    // Group by type for chart
+    const byType = movements.reduce((acc, m) => {
+      const type = (m.type || 'Unknown').toUpperCase();
       if (!acc[type]) {
         acc[type] = { type, count: 0, quantity: 0 };
       }
       acc[type].count += 1;
-      acc[type].quantity += m.quantity;
+      acc[type].quantity += Number(m.delta || 0);
       return acc;
     }, {});
     
@@ -274,15 +288,7 @@ export default function ReportsPage() {
       type: 'movements',
       summary: { totalMovements, stockIn, stockOut },
       chartData: Object.values(byType),
-      tableData: normalized.map(m => ({
-        date: new Date(m.created_at).toLocaleDateString(),
-        product: m.products?.name || 'N/A',
-        type: m.movement_type,
-        quantity: m.quantity,
-        stockBefore: m.stock_before,
-        stockAfter: m.stock_after,
-        notes: m.notes || 'N/A'
-      }))
+      tableData
     });
   }
 
@@ -445,7 +451,7 @@ export default function ReportsPage() {
               </button>
             </div>
             
-            <div className="overflow-x-auto max-h-96">
+            <div className="overflow-x-auto max-h-[600px]">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
