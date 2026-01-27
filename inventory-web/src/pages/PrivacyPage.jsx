@@ -93,7 +93,7 @@ export default function PrivacyPage() {
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">9. Contacto</h2>
                             <p className="text-gray-600 dark:text-gray-300 mb-2">Para dudas sobre esta política:</p>
                             <ul className="space-y-1 text-gray-600 dark:text-gray-300">
-                                <li>📧 contacto@kaizenstudio.dev</li>
+                                <li>📧 kaizenstudiodev@gmail.com</li>
                                 <li>📱 Instagram: @kaizenstudio.dev</li>
                             </ul>
                         </section>
