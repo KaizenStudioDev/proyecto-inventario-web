@@ -1,9 +1,20 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useProducts, formatCurrency, useAuth } from '../lib/hooks';
+import { exportToPDF } from '../lib/pdfUtils';
+import LockedFeature from '../components/LockedFeature';
+import { useDemo } from '../lib/DemoContext';
+import PageLoader from '../components/PageLoader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Papa from 'papaparse';
 
 export default function ReportsPage() {
+  const { hasFeature } = useDemo();
+
+  if (!hasFeature('reports')) {
+    return <LockedFeature featureName="Advanced Reports" requiredLicense="Inventory + Sales" />;
+  }
+
   const { profile } = useAuth();
   const { products } = useProducts();
   const [reportType, setReportType] = useState('inventory');
@@ -18,21 +29,21 @@ export default function ReportsPage() {
   const getDateRangeFilters = () => {
     let from = null;
     let to = null;
-    
+
     // Parse dateFrom: treat as start of day in UTC
     if (dateFrom) {
       // dateFrom comes as YYYY-MM-DD from input[type="date"]
       const [year, month, day] = dateFrom.split('-').map(Number);
       from = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
     }
-    
+
     // Parse dateTo: treat as end of day in UTC
     if (dateTo) {
       // dateTo comes as YYYY-MM-DD from input[type="date"]
       const [year, month, day] = dateTo.split('-').map(Number);
       to = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
     }
-    
+
     return {
       from: from ? from.toISOString() : null,
       to: to ? to.toISOString() : null,
@@ -41,9 +52,9 @@ export default function ReportsPage() {
 
   async function generateReport() {
     if (!canViewReports) return;
-    
+
     setLoading(true);
-    
+
     try {
       if (reportType === 'inventory') {
         await generateInventoryReport();
@@ -57,7 +68,7 @@ export default function ReportsPage() {
     } catch (error) {
       console.error('Report generation error:', error);
     }
-    
+
     setLoading(false);
   }
 
@@ -67,7 +78,7 @@ export default function ReportsPage() {
     const totalValue = products.reduce((sum, p) => sum + (p.stock * p.unit_price), 0);
     const lowStockItems = products.filter(p => p.stock <= p.min_stock);
     const outOfStockItems = products.filter(p => p.stock === 0);
-    
+
     // Group by category
     const byCategory = products.reduce((acc, p) => {
       const cat = p.category || 'Uncategorized';
@@ -79,7 +90,7 @@ export default function ReportsPage() {
       acc[cat].stock += p.stock;
       return acc;
     }, {});
-    
+
     setReportData({
       type: 'inventory',
       summary: {
@@ -117,16 +128,16 @@ export default function ReportsPage() {
     if (to) query = query.lte('created_at', to);
 
     const { data: sales } = await query.order('created_at', { ascending: false });
-    
+
     if (!sales || sales.length === 0) {
       setReportData({ type: 'sales', summary: {}, chartData: [], tableData: [] });
       return;
     }
-    
+
     const totalSales = sales.length;
     const totalRevenue = sales.reduce((sum, s) => sum + (s.total || 0), 0);
     const completedSales = sales.filter(s => s.status === 'COMPLETED').length;
-    
+
     // Group by month
     const byMonth = sales.reduce((acc, s) => {
       const month = new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
@@ -137,7 +148,7 @@ export default function ReportsPage() {
       acc[month].revenue += s.total || 0;
       return acc;
     }, {});
-    
+
     // Flatten sale items for table
     const tableData = [];
     sales.forEach(sale => {
@@ -154,7 +165,7 @@ export default function ReportsPage() {
         });
       }
     });
-    
+
     setReportData({
       type: 'sales',
       summary: { totalSales, totalRevenue, completedSales },
@@ -179,16 +190,16 @@ export default function ReportsPage() {
     if (to) query = query.lte('created_at', to);
 
     const { data: purchases } = await query.order('created_at', { ascending: false });
-    
+
     if (!purchases || purchases.length === 0) {
       setReportData({ type: 'purchases', summary: {}, chartData: [], tableData: [] });
       return;
     }
-    
+
     const totalPurchases = purchases.length;
     const totalCost = purchases.reduce((sum, p) => sum + (p.total || 0), 0);
     const receivedPurchases = purchases.filter(p => p.status === 'RECEIVED').length;
-    
+
     // Group by month
     const byMonth = purchases.reduce((acc, p) => {
       const month = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
@@ -199,7 +210,7 @@ export default function ReportsPage() {
       acc[month].cost += p.total || 0;
       return acc;
     }, {});
-    
+
     // Flatten purchase items for table
     const tableData = [];
     purchases.forEach(purchase => {
@@ -216,7 +227,7 @@ export default function ReportsPage() {
         });
       }
     });
-    
+
     setReportData({
       type: 'purchases',
       summary: { totalPurchases, totalCost, receivedPurchases },
@@ -254,9 +265,9 @@ export default function ReportsPage() {
 
     // Map directly from database records
     const tableData = movements.map(m => ({
-      date: new Date(m.created_at).toLocaleDateString('es-ES', { 
-        year: 'numeric', 
-        month: '2-digit', 
+      date: new Date(m.created_at).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
@@ -272,7 +283,7 @@ export default function ReportsPage() {
     const totalMovements = movements.length;
     const stockIn = movements.filter(m => (m.delta || 0) > 0).reduce((sum, m) => sum + (m.delta || 0), 0);
     const stockOut = movements.filter(m => (m.delta || 0) < 0).reduce((sum, m) => sum + Math.abs(m.delta || 0), 0);
-    
+
     // Group by type for chart
     const byType = movements.reduce((acc, m) => {
       const type = (m.type || 'Unknown').toUpperCase();
@@ -283,7 +294,7 @@ export default function ReportsPage() {
       acc[type].quantity += Number(m.delta || 0);
       return acc;
     }, {});
-    
+
     setReportData({
       type: 'movements',
       summary: { totalMovements, stockIn, stockOut },
@@ -292,21 +303,51 @@ export default function ReportsPage() {
     });
   }
 
+  function handleExportPDF() {
+    if (!reportData || !reportData.tableData) return;
+
+    const headers = Object.keys(reportData.tableData[0]).map(key =>
+      key.replace(/([A-Z])/g, ' $1').trim()
+    );
+
+    // Transform object data to array of arrays for jspdf-autotable
+    const data = reportData.tableData.map(row =>
+      Object.values(row).map((val, i) => {
+        // Format currency values
+        if (typeof val === 'number' && (
+          Object.keys(row)[i].toLowerCase().includes('price') ||
+          Object.keys(row)[i].toLowerCase().includes('value') ||
+          Object.keys(row)[i].toLowerCase().includes('cost') ||
+          Object.keys(row)[i].toLowerCase().includes('revenue')
+        )) {
+          return formatCurrency(val);
+        }
+        return val;
+      })
+    );
+
+    exportToPDF({
+      title: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`,
+      columns: headers,
+      data: data,
+      filename: `${reportType}_report_${new Date().toISOString().split('T')[0]}.pdf`
+    });
+  }
+
   function exportToCSV() {
     if (!reportData || !reportData.tableData) return;
-    
-    const headers = Object.keys(reportData.tableData[0]);
-    const csvContent = [
-      headers.join(','),
-      ...reportData.tableData.map(row => 
-        headers.map(h => {
-          const val = row[h];
-          return typeof val === 'string' && val.includes(',') ? `"${val}"` : val;
-        }).join(',')
-      )
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+
+    // Use Papaparse to unparse the data to CSV format
+    const csvContent = Papa.unparse(reportData.tableData, {
+      quotes: true, // Quote all fields to handle commas/newlines correctly
+      delimiter: ',',
+      header: true
+    });
+
+    // Add BOM for Excel UTF-8 recognition
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -328,15 +369,15 @@ export default function ReportsPage() {
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">Reports & Analytics</h1>
-        <p className="text-gray-600">Generate comprehensive business intelligence reports</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">Reports & Analytics</h1>
+        <p className="text-gray-600 dark:text-gray-400">Generate comprehensive business intelligence reports</p>
       </div>
 
       {/* Filters Card */}
-      <div className="card">
+      <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Report Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Report Type</label>
             <select
               className="input-field"
               value={reportType}
@@ -348,9 +389,9 @@ export default function ReportsPage() {
               <option value="movements">Stock Movements</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">From Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From Date</label>
             <input
               type="date"
               className="input-field"
@@ -358,9 +399,9 @@ export default function ReportsPage() {
               onChange={e => setDateFrom(e.target.value)}
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">To Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To Date</label>
             <input
               type="date"
               className="input-field"
@@ -368,7 +409,7 @@ export default function ReportsPage() {
               onChange={e => setDateTo(e.target.value)}
             />
           </div>
-          
+
           <div className="flex items-end">
             <button
               onClick={generateReport}
@@ -381,17 +422,19 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {loading && <PageLoader message={`Calculating ${reportType} data...`} />}
+
       {/* Report Results */}
       {reportData && (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(reportData.summary).map(([key, value]) => (
-              <div key={key} className="card">
-                <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">
+              <div key={key} className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {typeof value === 'number' && key.toLowerCase().includes('value') || key.toLowerCase().includes('revenue') || key.toLowerCase().includes('cost')
                     ? formatCurrency(value)
                     : value.toLocaleString()}
@@ -402,19 +445,29 @@ export default function ReportsPage() {
 
           {/* Chart */}
           {reportData.chartData && reportData.chartData.length > 0 && (
-            <div className="card">
+            <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Visual Analysis</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Visual Analysis</h2>
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={reportData.chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey={reportData.type === 'inventory' ? 'category' : reportData.type === 'movements' ? 'type' : 'month'} 
+                  <XAxis
+                    dataKey={reportData.type === 'inventory' ? 'category' : reportData.type === 'movements' ? 'type' : 'month'}
                     tick={{ fontSize: 12, fill: '#6b7280' }}
                   />
                   <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
-                  <Tooltip />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(107, 114, 128, 0.1)' }}
+                    contentStyle={{
+                      backgroundColor: '#1f2937',
+                      borderColor: '#374151',
+                      color: '#f3f4f6',
+                      borderRadius: '0.5rem'
+                    }}
+                    itemStyle={{ color: '#e5e7eb' }}
+                    labelStyle={{ color: '#9ca3af' }}
+                  />
                   <Legend />
                   {reportData.type === 'inventory' && (
                     <>
@@ -443,30 +496,35 @@ export default function ReportsPage() {
           )}
 
           {/* Export and Table */}
-          <div className="card p-0 overflow-hidden">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Detailed Data</h2>
-              <button onClick={exportToCSV} className="btn-secondary">
-                Export to CSV
-              </button>
+          <div className="card p-0 overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Detailed Data</h2>
+              <div className="flex gap-2">
+                <button onClick={handleExportPDF} className="btn-primary flex items-center gap-2 text-sm">
+                  <span>📄</span> Export PDF
+                </button>
+                <button onClick={exportToCSV} className="btn-secondary flex items-center gap-2 text-sm">
+                  <span>📊</span> CSV
+                </button>
+              </div>
             </div>
-            
+
             <div className="overflow-x-auto max-h-[600px]">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
                   <tr>
                     {reportData.tableData[0] && Object.keys(reportData.tableData[0]).map(key => (
-                      <th key={key} className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      <th key={key} className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                         {key.replace(/([A-Z])/g, ' $1').trim()}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
                   {reportData.tableData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       {Object.values(row).map((val, i) => (
-                        <td key={i} className="px-6 py-4 text-sm text-gray-900">
+                        <td key={i} className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                           {typeof val === 'number' && Object.keys(row)[i].toLowerCase().includes('price') || Object.keys(row)[i].toLowerCase().includes('value') || Object.keys(row)[i].toLowerCase().includes('cost')
                             ? formatCurrency(val)
                             : val}

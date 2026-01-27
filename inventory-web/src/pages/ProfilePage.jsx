@@ -20,7 +20,7 @@ export default function ProfilePage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (profile?.is_test_user) {
       setError('Test accounts cannot be modified');
       return;
@@ -42,7 +42,7 @@ export default function ProfilePage() {
       if (updateError) throw updateError;
 
       setSuccess('Profile updated successfully');
-      
+
       // Refresh page after 1.5s to show updated data
       setTimeout(() => {
         window.location.reload();
@@ -70,20 +70,20 @@ export default function ProfilePage() {
     <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">Profile Settings</h1>
-        <p className="text-gray-600">Manage your account data and access information</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">Profile Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400">Manage your account data and access information</p>
       </div>
 
       {/* Profile Card */}
       <div className="card p-0 overflow-hidden">
-        <div className="bg-white border-b border-gray-200 px-6 py-8">
+        <div className="bg-white dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 px-6 py-8">
           <div className="flex items-center gap-6">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-3xl font-semibold overflow-hidden">
+            <div className="w-24 h-24 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center text-3xl font-semibold overflow-hidden">
               {form.avatar_url ? (
                 <img src={form.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-gray-700">
+                <span className="text-gray-700 dark:text-gray-300">
                   {(form.full_name || user?.email || '?')[0].toUpperCase()}
                 </span>
               )}
@@ -91,14 +91,14 @@ export default function ProfilePage() {
 
             {/* Info */}
             <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-1">{form.full_name || 'No Name Set'}</h2>
-              <p className="text-gray-600 text-sm mb-3">{user?.email}</p>
+              <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">{form.full_name || 'No Name Set'}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{user?.email}</p>
               <div className="flex items-center gap-2">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-gray-700 bg-gray-200 border border-gray-300">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600">
                   {getRoleLabel(profile?.role || 'tester')}
                 </span>
                 {isTestAccount && (
-                  <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full border border-amber-200">
+                  <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold rounded-full border border-amber-200 dark:border-amber-800">
                     Demo Account
                   </span>
                 )}
@@ -119,7 +119,7 @@ export default function ProfilePage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Full Name
               </label>
               <input
@@ -134,35 +134,35 @@ export default function ProfilePage() {
 
             {/* Email (Read-only) */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
                 type="email"
                 value={user?.email || ''}
                 disabled
-                className="input-field bg-gray-100 cursor-not-allowed"
+                className="input-field bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">Managed by system administrator</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Managed by system administrator</p>
             </div>
 
             {/* Role (Read-only) */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Role / Permission Level
               </label>
               <input
                 type="text"
                 value={getRoleLabel(profile?.role || 'tester')}
                 disabled
-                className="input-field bg-gray-100 cursor-not-allowed"
+                className="input-field bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">Request changes to an administrator</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Request changes to an administrator</p>
             </div>
 
             {/* Avatar URL */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Avatar URL (Optional)
               </label>
               <input
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                 className="input-field"
                 placeholder="https://url-to-your-image.jpg"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Direct link to your profile image
               </p>
             </div>
@@ -216,19 +216,19 @@ export default function ProfilePage() {
       {/* Account Info Card */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Account Information</h3>
-          <span className="text-xs text-gray-500">System details</span>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Account Information</h3>
+          <span className="text-xs text-gray-500 dark:text-gray-400">System details</span>
         </div>
         <div className="space-y-3 text-sm">
-          <div className="flex justify-between items-center py-2 border-b border-gray-200">
-            <span className="text-gray-600">Account Type:</span>
-            <span className="font-semibold text-gray-900">
+          <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+            <span className="text-gray-600 dark:text-gray-400">Account Type:</span>
+            <span className="font-semibold text-gray-900 dark:text-white">
               {isTestAccount ? 'Demo Account' : 'Production Account'}
             </span>
           </div>
           <div className="flex justify-between items-center py-2">
-            <span className="text-gray-600">Last Sign In:</span>
-            <span className="font-semibold text-gray-900">
+            <span className="text-gray-600 dark:text-gray-400">Last Sign In:</span>
+            <span className="font-semibold text-gray-900 dark:text-white">
               {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('es-ES') : 'N/A'}
             </span>
           </div>

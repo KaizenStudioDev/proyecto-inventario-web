@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { formatCurrency, formatCompactCurrency, formatCompactNumber } from '../lib/hooks';
 import QuickAddProductModal from '../components/QuickAddProductModal';
+import PageLoader from '../components/PageLoader';
 
-export default function DashboardPage({ setCurrentPage = () => {} }) {
+export default function DashboardPage({ setCurrentPage = () => { } }) {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
@@ -13,11 +14,11 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      
+
       // Load metrics
       const { data: metricsData } = await supabase.from('view_financial_snapshot').select('*').single();
       setMetrics(metricsData);
-      
+
       // Load low stock products (top 5)
       const { data: lowStockData } = await supabase
         .from('view_low_stock_products')
@@ -25,7 +26,7 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
         .order('stock', { ascending: true })
         .limit(5);
       setLowStockProducts(lowStockData || []);
-      
+
       setLoading(false);
     }
     load();
@@ -36,7 +37,7 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
     async function reload() {
       const { data } = await supabase.from('view_financial_snapshot').select('*').single();
       setMetrics(data);
-      
+
       // Also reload low stock products
       const { data: lowStockData } = await supabase
         .from('view_low_stock_products')
@@ -50,11 +51,11 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
 
   async function handleRefresh() {
     setRefreshing(true);
-    
+
     // Load metrics
     const { data: metricsData } = await supabase.from('view_financial_snapshot').select('*').single();
     setMetrics(metricsData);
-    
+
     // Load low stock products
     const { data: lowStockData } = await supabase
       .from('view_low_stock_products')
@@ -62,19 +63,12 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
       .order('stock', { ascending: true })
       .limit(5);
     setLowStockProducts(lowStockData || []);
-    
+
     setTimeout(() => setRefreshing(false), 500);
   }
 
   if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader message="Loading dashboard overview..." />;
   }
 
   const stats = [
@@ -90,8 +84,8 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Executive Overview</h1>
-          <p className="text-gray-600">Operational snapshot for decision-making</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">Executive Overview</h1>
+          <p className="text-gray-600 dark:text-gray-400">Operational snapshot for decision-making</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -103,7 +97,7 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
             <span className={`text-sm font-semibold ${refreshing ? 'animate-spin' : ''}`}>↻</span>
             <span className="text-sm font-medium">Refresh</span>
           </button>
-          <div className="hidden md:flex items-center gap-2 bg-white px-3 py-2 rounded-md border border-gray-200 text-xs text-gray-600">
+          <div className="hidden md:flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300">
             <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
         </div>
@@ -130,15 +124,15 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
 
       {/* Low Stock Alerts Section */}
       {lowStockProducts.length > 0 && (
-        <div className="card border border-amber-200 bg-white">
+        <div className="card border border-amber-200 dark:border-amber-900 bg-white dark:bg-gray-800/50">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md border border-amber-200 bg-amber-50 flex items-center justify-center text-amber-700 text-sm font-semibold">
+              <div className="w-10 h-10 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 dark:text-amber-400 text-sm font-semibold">
                 Alert
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Stock Attention</h2>
-                <p className="text-xs text-gray-600">{lowStockProducts.length} products below threshold</p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Stock Attention</h2>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{lowStockProducts.length} products below threshold</p>
               </div>
             </div>
             <button
@@ -148,30 +142,20 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
               View all
             </button>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-            {lowStockProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-md p-4 border border-gray-200"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-700">{product.sku}</span>
-                  <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${
-                    product.stock === 0 
-                      ? 'bg-red-100 text-red-700' 
-                      : 'bg-amber-50 text-amber-700'
-                  }`}>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {lowStockProducts.slice(0, 4).map(product => (
+              <div key={product.id} className="bg-white dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-900/50 rounded-md p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate pr-2">{product.name}</h3>
+                  <span className={`badge ${product.stock === 0 ? 'badge-danger' : 'badge-warning'} shrink-0`}>
                     {product.stock === 0 ? 'Out' : 'Low'}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate" title={product.name}>
-                  {product.name}
-                </h3>
-                <div className="flex items-center justify-between text-xs text-gray-600">
-                  <span>Stock / Min</span>
-                  <span className={`font-semibold ${product.stock === 0 ? 'text-red-700' : 'text-amber-700'}`}>
-                    {product.stock} / {product.min_stock}
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{product.name}</p>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <span className={`text-xs font-semibold ${product.stock === 0 ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                    Stock: {product.stock}/{product.min_stock}
                   </span>
                 </div>
               </div>
@@ -183,21 +167,21 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
       {/* Additional Info Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Stats */}
-        <div className="card">
+        <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Financial Summary</h2>
-            <span className="text-xs text-gray-500">COP</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Financial Summary</h2>
+            <span className="text-xs text-gray-500 dark:text-gray-400">COP</span>
           </div>
           <ul className="space-y-3">
-            <li className="flex justify-between items-center py-2 border-b border-gray-100 text-sm text-gray-700">
+            <li className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
               <span>Gross Profit</span>
-              <span className="font-semibold text-gray-900 text-right">{formatCurrency((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0))}</span>
+              <span className="font-semibold text-gray-900 dark:text-white text-right">{formatCurrency((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0))}</span>
             </li>
-            <li className="flex justify-between items-center py-2 border-b border-gray-100 text-sm text-gray-700">
+            <li className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
               <span>Profit Margin</span>
-              <span className="font-semibold text-gray-900 text-right">{metrics?.total_sales_completed > 0 ? ((((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0)) / metrics.total_sales_completed) * 100).toFixed(1) : 0}%</span>
+              <span className="font-semibold text-gray-900 dark:text-white text-right">{metrics?.total_sales_completed > 0 ? ((((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0)) / metrics.total_sales_completed) * 100).toFixed(1) : 0}%</span>
             </li>
-            <li className="flex justify-between items-center py-2 text-sm text-gray-700">
+            <li className="flex justify-between items-center py-2 text-sm text-gray-700 dark:text-gray-300">
               <span>Stock Turnover</span>
               <span className="badge badge-success">Healthy</span>
             </li>
@@ -205,12 +189,12 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
         </div>
 
         {/* System Status */}
-        <div className="card">
+        <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">System Status</h2>
-            <span className="text-xs text-green-700 font-semibold">Stable</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Status</h2>
+            <span className="text-xs text-green-700 dark:text-green-400 font-semibold">Stable</span>
           </div>
-          <ul className="space-y-3 text-sm text-gray-700">
+          <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
             <li className="flex items-center gap-3 py-2">
               <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
               <span>Database connectivity</span>
@@ -230,36 +214,36 @@ export default function DashboardPage({ setCurrentPage = () => {} }) {
         </div>
 
         {/* Quick Actions */}
-        <div className="card">
+        <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-            <span className="text-xs text-gray-500">Shortcuts</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Shortcuts</span>
           </div>
           <div className="space-y-2 text-sm">
-            <button 
+            <button
               onClick={() => setCurrentPage('alerts')}
-              className="w-full justify-between border border-amber-200 text-amber-800 bg-amber-50 hover:bg-amber-100 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
+              className="w-full justify-between border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
               Stock alerts
               <span>→</span>
             </button>
-            <button 
+            <button
               onClick={() => setShowQuickAddModal(true)}
-              className="w-full justify-between border border-gray-200 text-gray-800 bg-white hover:bg-gray-50 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
+              className="w-full justify-between border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
               Quick add product
               <span>→</span>
             </button>
-            <button 
+            <button
               onClick={() => setCurrentPage('sales')}
-              className="w-full justify-between border border-blue-200 text-blue-800 bg-blue-50 hover:bg-blue-100 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
+              className="w-full justify-between border border-blue-200 dark:border-blue-900/50 text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
               Record sale
               <span>→</span>
             </button>
-            <button 
+            <button
               onClick={() => setCurrentPage('purchases')}
-              className="w-full justify-between border border-green-200 text-green-800 bg-green-50 hover:bg-green-100 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
+              className="w-full justify-between border border-green-200 dark:border-green-900/50 text-green-800 dark:text-green-200 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
               Record purchase
               <span>→</span>

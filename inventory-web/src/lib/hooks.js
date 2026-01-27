@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { supabase } from './supabaseClient';
 
 // Custom hook: Auth state
@@ -38,7 +39,7 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
       setLoading(true); // Start loading when auth changes
-      
+
       if (session?.user) {
         supabase.from('profiles').select('*').eq('user_id', session.user.id).single()
           .then(({ data, error }) => {
@@ -74,10 +75,17 @@ export function useProducts() {
 
   async function load() {
     setLoading(true);
-    const { data, error: err } = await supabase.from('products').select('*').order('name');
-    if (err) setError(err.message);
-    else setProducts(data || []);
-    setLoading(false);
+    try {
+      const { data, error: err } = await supabase.from('products').select('*').order('name');
+      if (err) throw err;
+      setProducts(data || []);
+    } catch (err) {
+      console.error('Error loading products:', err);
+      setError(err.message);
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -91,9 +99,16 @@ export function useCustomers() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from('customers').select('*').order('name');
-    setCustomers(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase.from('customers').select('*').order('name');
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (err) {
+      console.error('Error loading customers:', err);
+      toast.error('Failed to load customers');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -107,9 +122,16 @@ export function useSuppliers() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from('suppliers').select('*').order('name');
-    setSuppliers(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase.from('suppliers').select('*').order('name');
+      if (error) throw error;
+      setSuppliers(data || []);
+    } catch (err) {
+      console.error('Error loading suppliers:', err);
+      toast.error('Failed to load suppliers');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -123,9 +145,16 @@ export function useLowStockAlerts() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from('view_low_stock_products').select('*').order('stock');
-    setAlerts(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase.from('view_low_stock_products').select('*').order('stock');
+      if (error) throw error;
+      setAlerts(data || []);
+    } catch (err) {
+      console.error('Error loading alerts:', err);
+      // Don't toast for alerts to reduce noise on dashboard
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -134,9 +163,9 @@ export function useLowStockAlerts() {
 
 // Utility: Get stock status color
 export function getStockColor(stock, minStock) {
-  if (stock <= 0) return 'text-red-600 bg-red-50';
-  if (stock <= minStock) return 'text-yellow-600 bg-yellow-50';
-  return 'text-green-600 bg-green-50';
+  if (stock <= 0) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+  if (stock <= minStock) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
+  return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
 }
 
 // Utility: Format currency
@@ -168,22 +197,22 @@ export function formatCurrencyMultiline(amount) {
 // Utility: Format large numbers compactly (K, M, B)
 export function formatCompactNumber(num) {
   const number = Number(num || 0);
-  
+
   // Less than 100,000: show full number
   if (number < 100000) {
     return number.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
-  
+
   // 100K - 999K
   if (number < 1000000) {
     return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   }
-  
+
   // 1M - 999M
   if (number < 1000000000) {
     return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }
-  
+
   // 1B+
   return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
 }
@@ -191,22 +220,22 @@ export function formatCompactNumber(num) {
 // Utility: Format currency with compact notation for large amounts
 export function formatCompactCurrency(amount) {
   const number = Number(amount || 0);
-  
+
   // Less than 100,000: show full currency
   if (number < 100000) {
     return '$' + number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
-  
+
   // 100K - 999K
   if (number < 1000000) {
     return '$' + (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   }
-  
+
   // 1M - 999M
   if (number < 1000000000) {
     return '$' + (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }
-  
+
   // 1B+
   return '$' + (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
 }
@@ -222,7 +251,7 @@ export function useProductMovements(productId) {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     const { data } = await supabase
       .from('product_movements')
@@ -230,7 +259,7 @@ export function useProductMovements(productId) {
       .eq('product_id', productId)
       .order('created_at', { ascending: false })
       .limit(50);
-    
+
     setMovements(data || []);
     setLoading(false);
   }
