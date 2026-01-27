@@ -5,8 +5,11 @@ import { toast } from 'react-hot-toast';
 import { useDemo } from '../lib/DemoContext';
 import LogoDark from '../assets/logo-dark.svg';
 import LogoLight from '../assets/logo-light.svg';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 export default function LandingNav() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
@@ -63,7 +66,7 @@ export default function LandingNav() {
             {isLoggingIn && (
                 <div className="fixed inset-0 z-[100] bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm flex flex-col items-center justify-center animate-fade-in">
                     <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-900 dark:text-white font-bold text-lg animate-pulse">Launching Interactive Demo...</p>
+                    <p className="text-gray-900 dark:text-white font-bold text-lg animate-pulse">{t('landing.launching_demo')}</p>
                 </div>
             )}
             <div className="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
@@ -84,19 +87,19 @@ export default function LandingNav() {
                         onClick={() => handleNav('products')}
                         className="hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
-                        Products
+                        {t('nav.products')}
                     </button>
                     <button
                         onClick={() => handleNav('features')}
                         className="hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
-                        Features
+                        {t('nav.features', { defaultValue: 'Features' })}
                     </button>
                     <button
                         onClick={() => navigate('/pricing')}
                         className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
-                        Pricing
+                        {t('nav.pricing', { defaultValue: 'Pricing' })}
                     </button>
                 </div>
 
@@ -113,17 +116,19 @@ export default function LandingNav() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="18.36" x2="5.64" y2="16.92"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                         )}
                     </button>
+                    <div className="h-4 w-px bg-gray-200 dark:bg-gray-800 mx-1"></div>
+                    <LanguageSwitcher />
                     <button
                         onClick={() => navigate('/login')}
                         className="hidden md:block text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
-                        Log in
+                        {t('nav.login', { defaultValue: 'Log in' })}
                     </button>
                     <button
                         onClick={handleDemoLaunch}
                         className="px-4 py-2 bg-gray-900 dark:bg-white dark:text-gray-900 hover:bg-black dark:hover:bg-gray-100 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
                     >
-                        Live Demo
+                        {t('landing.try_demo')}
                     </button>
                 </div>
             </div>

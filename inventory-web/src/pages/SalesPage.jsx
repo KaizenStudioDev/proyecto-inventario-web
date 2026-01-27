@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useCustomers, useProducts, formatCurrency, useAuth } from '../lib/hooks';
-import ModernSelect from '../components/ModernSelect';
+import { useAuth, useCustomers, useProducts } from '../lib/hooks';
 import LockedFeature from '../components/LockedFeature';
 import { useDemo } from '../lib/DemoContext';
 import PageLoader from '../components/PageLoader';
+import { useTranslation } from 'react-i18next';
 
 export default function SalesPage() {
+  const { t, i18n } = useTranslation();
   const { hasFeature } = useDemo();
 
   if (!hasFeature('sales')) {
-    return <LockedFeature featureName="Sales Management" requiredLicense="Inventory + Sales" />;
+    return <LockedFeature featureName={t('sales.title')} requiredLicense="Inventory + Sales" />;
   }
 
   const { profile } = useAuth();
@@ -45,7 +46,7 @@ export default function SalesPage() {
 
   // If profile not loaded yet, show loading
   if (!profile || (customersLoading && sales.length === 0)) {
-    return <PageLoader message="Initializing sales module..." />;
+    return <PageLoader message={t('sales.loading')} />;
   }
 
   // Check permissions: all can view sales, only admin/vendedor/tester can create
@@ -57,8 +58,8 @@ export default function SalesPage() {
     return (
       <div className="p-8 max-w-4xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-lg font-semibold text-red-900">Access denied</p>
-          <p className="text-red-700 mt-2">Your role ({profile.role}) does not have permission to access sales.</p>
+          <p className="text-lg font-semibold text-red-900">{t('common.access_denied')}</p>
+          <p className="text-red-700 mt-2">{t('common.no_permission', { role: profile.role, feature: t('nav.sales').toLowerCase() })}</p>
         </div>
       </div>
     );
@@ -86,12 +87,12 @@ export default function SalesPage() {
   async function handleCreateSale() {
     // Validations with specific error messages
     if (!selectedCustomer) {
-      setError('⚠️ Please select a customer before completing the sale');
+      setError(`⚠️ ${t('sales.error_no_customer')}`);
       return;
     }
 
     if (items.length === 0) {
-      setError('⚠️ Please add at least one product to the cart');
+      setError(`⚠️ ${t('sales.error_no_items')}`);
       return;
     }
 
@@ -141,19 +142,19 @@ export default function SalesPage() {
   const productOptions = products.map(p => ({
     value: p.id,
     label: p.name,
-    description: `Stock: ${p.stock} | Price: ${formatCurrency(p.unit_price)}`,
+    description: `Stock: ${p.stock} | ${t('common.unit_price')}: ${formatCurrency(p.unit_price)}`,
   }));
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">Sales</h1>
-        <p className="text-gray-600 dark:text-gray-400">Record and manage customer transactions</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">{t('nav.sales')}</h1>
+        <p className="text-gray-600 dark:text-gray-400">{t('sales.subtitle')}</p>
         {!canCreateSales && (
           <div className="mt-3 bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
-            <p className="font-semibold">View only mode</p>
-            <p>Your role ({profile?.role}) can view sales but cannot create new ones.</p>
+            <p className="font-semibold">{t('common.view_only')}</p>
+            <p>{t('common.view_only_notice', { role: profile?.role, feature: t('nav.sales').toLowerCase() })}</p>
           </div>
         )}
       </div>
@@ -161,21 +162,21 @@ export default function SalesPage() {
       {/* Sales Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="stat-card">
-          <div className="text-xs uppercase tracking-wide text-gray-500">Total Sales Amount</div>
+          <div className="text-xs uppercase tracking-wide text-gray-500">{t('sales.total_sale_amount')}</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{formatCurrency(totalSalesAmount)}</div>
-          <div className="text-[11px] text-gray-500 mt-1">{completedSales} transactions</div>
+          <div className="text-[11px] text-gray-500 mt-1">{completedSales} {t('sales.transactions')}</div>
         </div>
         <div className="stat-card">
-          <div className="text-xs uppercase tracking-wide text-gray-500">Average Sale</div>
+          <div className="text-xs uppercase tracking-wide text-gray-500">{t('sales.average_sale')}</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">
             {formatCurrency(averageSaleAmount)}
           </div>
-          <div className="text-[11px] text-gray-500 mt-1">Per transaction</div>
+          <div className="text-[11px] text-gray-500 mt-1">{t('sales.per_transaction')}</div>
         </div>
         <div className="stat-card">
-          <div className="text-xs uppercase tracking-wide text-gray-500">Total Sales</div>
+          <div className="text-xs uppercase tracking-wide text-gray-500">{t('sales.total_records')}</div>
           <div className="text-2xl lg:text-3xl font-bold text-center mt-2">{sales.length}</div>
-          <div className="text-[11px] text-gray-500 mt-1">All records</div>
+          <div className="text-[11px] text-gray-500 mt-1">{t('sales.all_records')}</div>
         </div>
       </div>
 
@@ -184,35 +185,35 @@ export default function SalesPage() {
         {canCreateSales && (
           <div className="card p-0 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">New sale</h2>
-              <span className="text-xs text-gray-500">Customer & items</span>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('sales.new_sale')}</h2>
+              <span className="text-xs text-gray-500">{t('sales.customer_items')}</span>
             </div>
 
             <div className="p-6 space-y-4">
               {/* Customer Select */}
               <ModernSelect
-                label="Select Customer *"
+                label={`${t('sales.customer')} *`}
                 icon="👤"
                 value={selectedCustomer}
                 onChange={setSelectedCustomer}
                 options={customerOptions}
-                placeholder="Choose a customer..."
+                placeholder={t('sales.select_customer')}
                 disabled={customersLoading}
               />
 
               {/* Product Select */}
               <ModernSelect
-                label="Select Product"
+                label={t('products.catalog')}
                 icon="📦"
                 value={selectedProduct}
                 onChange={setSelectedProduct}
                 options={productOptions}
-                placeholder="Choose a product..."
+                placeholder={t('sales.select_product')}
               />
 
               {/* Quantity */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quantity</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('common.quantity')}</label>
                 <input
                   type="number"
                   min="1"
@@ -228,7 +229,7 @@ export default function SalesPage() {
                 disabled={!selectedProduct}
                 className="btn-primary w-full flex items-center justify-center gap-2"
               >
-                <span>Add item</span>
+                <span>{t('buttons.add_item')}</span>
               </button>
 
               <div className="my-4 border-t-2 border-gray-200"></div>
@@ -236,12 +237,12 @@ export default function SalesPage() {
               {/* Items List */}
               <div>
                 <h3 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                  Cart items ({items.length})
+                  {t('sales.cart_items', { count: items.length })}
                 </h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {items.length === 0 ? (
                     <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-                      <p className="text-sm">No items added yet</p>
+                      <p className="text-sm">{t('sales.no_items')}</p>
                     </div>
                   ) : (
                     items.map((item, idx) => (
@@ -258,9 +259,9 @@ export default function SalesPage() {
                         <button
                           onClick={() => handleRemoveItem(idx)}
                           className="ml-2 text-red-600 hover:text-red-800 px-2 py-1 rounded-md"
-                          title="Remove item"
+                          title={t('buttons.remove')}
                         >
-                          Remove
+                          {t('buttons.remove')}
                         </button>
                       </div>
                     ))
@@ -270,7 +271,7 @@ export default function SalesPage() {
 
               {/* Total Box */}
               <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">Total amount</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">{t('common.total')}</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white text-right">{formatCurrency(total)}</p>
               </div>
 
@@ -284,7 +285,7 @@ export default function SalesPage() {
               {/* Validation warning when customer not selected */}
               {!selectedCustomer && items.length > 0 && (
                 <div className="bg-amber-50 border-2 border-amber-400 text-amber-800 px-4 py-3 rounded-xl text-sm font-medium">
-                  ⚠️ Please select a customer to complete this sale
+                  ⚠️ {t('sales.error_no_customer')}
                 </div>
               )}
 
@@ -293,16 +294,16 @@ export default function SalesPage() {
                 onClick={handleCreateSale}
                 disabled={loading || !selectedCustomer || items.length === 0}
                 className="btn-primary w-full flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                title={!selectedCustomer ? 'Select a customer first' : items.length === 0 ? 'Add items to cart' : 'Complete sale'}
+                title={!selectedCustomer ? t('sales.error_no_customer') : items.length === 0 ? t('sales.error_no_items') : t('buttons.complete_sale')}
               >
                 {loading ? (
                   <>
                     <span className="animate-spin">⌛</span>
-                    <span>Processing...</span>
+                    <span>{t('buttons.processing')}</span>
                   </>
                 ) : (
                   <>
-                    <span>Complete sale</span>
+                    <span>{t('buttons.complete_sale')}</span>
                   </>
                 )}
               </button>
@@ -313,20 +314,20 @@ export default function SalesPage() {
         {/* Sales List - Right Panel */}
         <div className="lg:col-span-2 card p-0 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent sales</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('sales.recent_sales')}</h2>
             <button
               onClick={loadSales}
               className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              title="Refresh sales list"
+              title={t('buttons.refresh')}
             >
-              Refresh
+              {t('buttons.refresh')}
             </button>
           </div>
 
           <div className="p-6">
             {sales.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-700 font-medium">No sales recorded yet</p>
+                <p className="text-gray-700 font-medium">{t('common.no_data')}</p>
               </div>
             ) : (
               <>
@@ -338,24 +339,24 @@ export default function SalesPage() {
                       <div key={sale.id} className="card p-4 border-l-4 border-l-indigo-500 active:scale-[0.98] transition-all">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Customer</p>
-                            <p className="font-bold text-gray-900 dark:text-white truncate">{customer?.name || 'Unknown'}</p>
+                            <p className="text-[10px] text-gray-400 uppercase font-bold">{t('sales.customer')}</p>
+                            <p className="font-bold text-gray-900 dark:text-white truncate">{customer?.name || t('common.no_data')}</p>
                           </div>
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${sale.status === 'COMPLETED'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-amber-100 text-amber-800'
                             }`}>
-                            {sale.status}
+                            {t(`sales.status_${sale.status.toLowerCase()}`)}
                           </span>
                         </div>
 
                         <div className="flex justify-between items-end mt-4">
                           <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Total</p>
+                            <p className="text-[10px] text-gray-400 uppercase font-bold">{t('common.total')}</p>
                             <p className="text-xl font-black text-gray-900 dark:text-white">{formatCurrency(sale.total)}</p>
                           </div>
                           <p className="text-xs text-gray-500">
-                            {new Date(sale.created_at).toLocaleDateString()}
+                            {new Date(sale.created_at).toLocaleDateString(i18n.language)}
                           </p>
                         </div>
                       </div>
@@ -368,10 +369,10 @@ export default function SalesPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-100 dark:bg-gray-700 border-b-2 border-gray-300 dark:border-gray-600">
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">Customer</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">Total</th>
-                        <th className="text-center px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">Status</th>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">Date</th>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{t('sales.customer')}</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{t('common.total')}</th>
+                        <th className="text-center px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{t('common.status')}</th>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{t('common.date')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -382,7 +383,7 @@ export default function SalesPage() {
                             key={sale.id}
                             className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
                           >
-                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{customer?.name || 'Unknown'}</td>
+                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{customer?.name || t('common.no_data')}</td>
                             <td className="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">{formatCurrency(sale.total)}</td>
                             <td className="px-4 py-3 text-center">
                               <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${sale.status === 'COMPLETED'
@@ -391,11 +392,11 @@ export default function SalesPage() {
                                   ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
                                   : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                                 }`}>
-                                {sale.status}
+                                {t(`sales.status_${sale.status.toLowerCase()}`)}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">
-                              {new Date(sale.created_at).toLocaleDateString('es-ES', {
+                              {new Date(sale.created_at).toLocaleDateString(i18n.language, {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric',

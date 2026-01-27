@@ -6,8 +6,11 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import LogoLight from '../assets/logo-light.svg';
 import LogoDark from '../assets/logo-dark.svg';
 import GlobalSearch from './GlobalSearch';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 export default function Layout() {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { isDemoMode, licenseType, licenseDetails, hasFeature, exitDemo } = useDemo();
   const navigate = useNavigate();
@@ -29,10 +32,10 @@ export default function Layout() {
 
   const getRoleLabel = (role) => {
     const labels = {
-      admin: 'Admin',
-      vendedor: 'Sales',
-      contabilidad: 'Accounting',
-      tester: 'Tester'
+      admin: t('roles.admin'),
+      vendedor: t('roles.vendedor'),
+      contabilidad: t('roles.contabilidad'),
+      tester: t('roles.tester')
     };
     return labels[role] || role;
   };
@@ -60,14 +63,14 @@ export default function Layout() {
   }
 
   const pages = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'products', label: 'Products', icon: 'Products', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'customers', label: 'Customers', icon: 'Customers', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'suppliers', label: 'Suppliers', icon: 'Suppliers', roles: ['admin', 'contabilidad', 'tester'] },
-    { id: 'sales', label: 'Sales', icon: 'Sales', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'purchases', label: 'Purchases', icon: 'Purchases', roles: ['admin', 'contabilidad', 'tester'] },
-    { id: 'alerts', label: 'Alerts', icon: 'Alerts', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
-    { id: 'reports', label: 'Reports', icon: 'Reports', roles: ['admin', 'contabilidad', 'tester'] },
+    { id: 'dashboard', label: t('nav.dashboard'), icon: 'Dashboard', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'products', label: t('nav.products'), icon: 'Products', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'customers', label: t('nav.customers'), icon: 'Customers', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'suppliers', label: t('nav.suppliers'), icon: 'Suppliers', roles: ['admin', 'contabilidad', 'tester'] },
+    { id: 'sales', label: t('nav.sales'), icon: 'Sales', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'purchases', label: t('nav.purchases'), icon: 'Purchases', roles: ['admin', 'contabilidad', 'tester'] },
+    { id: 'alerts', label: t('nav.alerts'), icon: 'Alerts', roles: ['admin', 'vendedor', 'contabilidad', 'tester'] },
+    { id: 'reports', label: t('nav.reports'), icon: 'Reports', roles: ['admin', 'contabilidad', 'tester'] },
   ];
 
   // Filter pages based on user role AND demo license features
@@ -89,12 +92,12 @@ export default function Layout() {
       {/* Demo Banner */}
       {isDemoMode && (
         <div className="bg-indigo-600 text-white px-4 py-2 text-xs font-semibold text-center flex items-center justify-center gap-4">
-          <span>👀 Viewing as Demo: {licenseDetails?.label}</span>
+          <span>👀 {t('layout.viewing_demo', { license: licenseDetails?.label })}</span>
           <button
             onClick={handleDemoExit}
             className="bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded text-[10px] transition-colors"
           >
-            Exit Demo
+            {t('layout.exit_demo')}
           </button>
         </div>
       )}
@@ -137,11 +140,14 @@ export default function Layout() {
               {/* Expandable Search */}
               <GlobalSearch />
 
+              <div className="h-6 w-px bg-gray-100 dark:bg-gray-800 mx-1"></div>
+              <LanguageSwitcher />
+
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
                 className="p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
-                title="Toggle Theme"
+                title={t('layout.toggle_theme')}
               >
                 {theme === 'light' ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -154,7 +160,7 @@ export default function Layout() {
               <div className="flex items-center gap-2 pl-2 border-l border-gray-100 dark:border-gray-800">
                 <div className="hidden xl:block text-right pr-1">
                   <p className="text-xs font-bold text-gray-900 dark:text-white leading-none capitalize">
-                    {user?.email?.split('@')[0] || (isDemoMode ? 'Demo User' : '')}
+                    {user?.email?.split('@')[0] || (isDemoMode ? t('layout.demo_user') : '')}
                   </p>
                   <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-tighter">
                     {getRoleLabel(profile?.role || 'tester')}
@@ -164,7 +170,7 @@ export default function Layout() {
                 <button
                   onClick={() => navigate('/app/profile')}
                   className="w-9 h-9 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full flex items-center justify-center font-bold text-xs hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 transition-all border border-gray-200 dark:border-gray-700"
-                  title="My Profile"
+                  title={t('layout.my_profile')}
                 >
                   {user?.email?.charAt(0).toUpperCase() || (isDemoMode ? 'D' : '?')}
                 </button>
@@ -172,10 +178,10 @@ export default function Layout() {
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-sm font-bold"
-                  title="Logout"
+                  title={t('layout.logout')}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                  <span className="hidden md:inline">Logout</span>
+                  <span className="hidden md:inline">{t('nav.logout')}</span>
                 </button>
               </div>
             </div>
@@ -206,8 +212,8 @@ export default function Layout() {
 
       <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
-          <span>Opero · Confidential</span>
-          <span>Built by Kaizen Studio</span>
+          <span>Opero · {t('layout.confidential')}</span>
+          <span>{t('layout.built_by')}</span>
         </div>
       </footer>
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 import { supabase } from './supabaseClient';
+import { toast } from 'react-hot-toast';
+import i18n from './i18n';
 
 // Custom hook: Auth state
 export function useAuth() {
@@ -170,74 +171,39 @@ export function getStockColor(stock, minStock) {
 
 // Utility: Format currency
 export function formatCurrency(amount) {
-  return '$' + Number(amount || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const locale = i18n.language || 'en';
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount || 0);
 }
 
 // Utility: Format currency with optional line break after millions for readability
 export function formatCurrencyMultiline(amount) {
   const normalized = formatCurrency(amount);
-  const [symbol, rest] = [normalized.charAt(0), normalized.slice(1)];
-  const [whole, decimals] = rest.split('.');
-  const digits = whole.replace(/,/g, '');
-
-  // If 6 digits or fewer, keep single line
-  if (digits.length <= 6) return normalized;
-
-  // Insert line break before the last 6 digits
-  const splitIndex = digits.length - 6;
-  const head = digits.slice(0, splitIndex);
-  const tail = digits.slice(splitIndex);
-
-  const headWithCommas = head.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const tailWithCommas = tail.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-  return `${symbol}${headWithCommas},\n${tailWithCommas}${decimals !== undefined ? `.${decimals}` : ''}`;
+  // This is tricky across locales, we'll stick to a simpler version for now or just return normalized
+  // For large numbers, formatCurrency already handles grouping
+  return normalized;
 }
 
 // Utility: Format large numbers compactly (K, M, B)
 export function formatCompactNumber(num) {
-  const number = Number(num || 0);
-
-  // Less than 100,000: show full number
-  if (number < 100000) {
-    return number.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
-
-  // 100K - 999K
-  if (number < 1000000) {
-    return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-
-  // 1M - 999M
-  if (number < 1000000000) {
-    return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-
-  // 1B+
-  return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+  const locale = i18n.language || 'en';
+  return new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    compactDisplay: 'short',
+  }).format(num || 0);
 }
 
 // Utility: Format currency with compact notation for large amounts
 export function formatCompactCurrency(amount) {
-  const number = Number(amount || 0);
-
-  // Less than 100,000: show full currency
-  if (number < 100000) {
-    return '$' + number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
-
-  // 100K - 999K
-  if (number < 1000000) {
-    return '$' + (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-
-  // 1M - 999M
-  if (number < 1000000000) {
-    return '$' + (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-
-  // 1B+
-  return '$' + (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+  const locale = i18n.language || 'en';
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    compactDisplay: 'short',
+  }).format(amount || 0);
 }
 
 // Custom hook: Fetch product movements

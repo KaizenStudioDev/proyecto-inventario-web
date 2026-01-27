@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/hooks';
 import LockedFeature from '../components/LockedFeature';
 import { useDemo } from '../lib/DemoContext';
 import PageLoader from '../components/PageLoader';
+import { useTranslation } from 'react-i18next';
 
 export default function SuppliersPage() {
+  const { t } = useTranslation();
   const { hasFeature } = useDemo();
 
   if (!hasFeature('suppliers')) {
-    return <LockedFeature featureName="Supplier Management" requiredLicense="Enterprise Suite" />;
+    return <LockedFeature featureName={t('suppliers.title')} requiredLicense="Enterprise Suite" />;
   }
 
   const { profile } = useAuth();
@@ -93,7 +95,7 @@ export default function SuppliersPage() {
   }
 
   if (loading) {
-    return <PageLoader message="Loading supplier directory..." />;
+    return <PageLoader message={t('suppliers.loading')} />;
   }
 
   return (
@@ -101,14 +103,14 @@ export default function SuppliersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">Suppliers</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage supplier relationships and procurement contacts</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">{t('suppliers.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('suppliers.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="btn-primary"
         >
-          Add supplier
+          {t('suppliers.add_supplier')}
         </button>
       </div>
 
@@ -116,7 +118,7 @@ export default function SuppliersPage() {
       <div className="space-y-4">
         {suppliers.length === 0 ? (
           <div className="card px-6 py-8 text-center text-gray-500">
-            No suppliers found. Add your first supplier to get started.
+            {t('suppliers.no_suppliers')}
           </div>
         ) : (
           <>
@@ -130,7 +132,7 @@ export default function SuppliersPage() {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-gray-900 dark:text-white">{supplier.name || supplier.nombre}</h3>
-                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold uppercase">Supplier</span>
+                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold uppercase">{t('nav.suppliers').slice(0, -1)}</span>
                   </div>
 
                   <div className="space-y-2 mt-3">
@@ -138,15 +140,15 @@ export default function SuppliersPage() {
                       <span>📧</span> {supplier.email || 'No email'}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                      <span>📱</span> {supplier.phone || supplier.telefono || 'No phone'}
+                      <span>📱</span> {supplier.phone || supplier.telefono || t('common.no_data').toLowerCase()}
                     </div>
                     <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                      <span>📍</span> <span className="line-clamp-1">{supplier.address || supplier.direccion || 'No address'}</span>
+                      <span>📍</span> <span className="line-clamp-1">{supplier.address || supplier.direccion || t('common.no_data').toLowerCase()}</span>
                     </div>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-end">
-                    <button className="text-blue-600 text-xs font-bold uppercase tracking-wider">Edit Supplier &gt;</button>
+                    <button className="text-blue-600 text-xs font-bold uppercase tracking-wider">{t('suppliers.edit_supplier')} &gt;</button>
                   </div>
                 </div>
               ))}
@@ -157,11 +159,11 @@ export default function SuppliersPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Phone</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Address</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">{t('common.name')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">{t('common.email')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">{t('common.phone')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">{t('common.address')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
@@ -175,7 +177,7 @@ export default function SuppliersPage() {
                         <button
                           onClick={() => openEditModal(supplier)}
                           className="text-blue-600 hover:text-blue-800 font-medium">
-                          Edit
+                          {t('buttons.edit')}
                         </button>
                       </td>
                     </tr>
@@ -191,10 +193,10 @@ export default function SuppliersPage() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Add new supplier</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t('suppliers.new_supplier')}</h2>
             <form onSubmit={handleAddSupplier} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('common.name')} *</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -204,7 +206,7 @@ export default function SuppliersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('common.email')}</label>
                 <input
                   type="email"
                   value={formData.email}
@@ -213,7 +215,7 @@ export default function SuppliersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('common.phone')}</label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -222,7 +224,7 @@ export default function SuppliersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('common.address')}</label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -232,10 +234,10 @@ export default function SuppliersPage() {
               </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary flex-1">
-                  Cancel
+                  {t('buttons.cancel')}
                 </button>
                 <button type="submit" className="btn-primary flex-1">
-                  Add supplier
+                  {t('suppliers.add_supplier')}
                 </button>
               </div>
             </form>
@@ -248,12 +250,12 @@ export default function SuppliersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              {isTester ? 'View supplier' : 'Edit supplier'}
+              {isTester ? t('customers.view_customer').replace('customer', 'supplier') : t('suppliers.edit_supplier')}
             </h2>
             {isTester && (
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-xs text-yellow-800">
-                  <span className="font-semibold">View only:</span> Tester accounts cannot edit supplier data.
+                  <span className="font-semibold">{t('customers.view_only')}:</span> {t('customers.tester_notice').replace('customer', 'supplier')}
                 </p>
               </div>
             )}
@@ -301,11 +303,11 @@ export default function SuppliersPage() {
               </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => { setShowEditModal(false); setEditingSupplier(null); }} className="btn-secondary flex-1">
-                  Cancel
+                  {t('buttons.cancel')}
                 </button>
                 {!isTester && (
                   <button type="submit" className="btn-primary flex-1">
-                    Save changes
+                    {t('buttons.save_changes')}
                   </button>
                 )}
               </div>

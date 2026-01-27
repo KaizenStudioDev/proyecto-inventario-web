@@ -3,8 +3,10 @@ import { supabase } from '../lib/supabaseClient';
 import { useProducts, getStockColor, formatCurrency, useAuth, useSuppliers, useProductMovements } from '../lib/hooks';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import PageLoader from '../components/PageLoader';
+import { useTranslation } from 'react-i18next';
 
 export default function ProductsPage() {
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const { products, loading, error, reload } = useProducts();
   const { suppliers } = useSuppliers();
@@ -97,7 +99,7 @@ export default function ProductsPage() {
     })
     .reverse()
     .map(m => ({
-      date: new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(m.created_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES', { month: 'short', day: 'numeric' }),
       stock: m.stock_after
     }));
 
@@ -111,8 +113,8 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">Product Catalog</h1>
-          <p className="text-gray-600 dark:text-gray-400">Master data for all sellable items</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">{t('products.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('products.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -123,7 +125,7 @@ export default function ProductsPage() {
             }`}
           title={!canCreate ? 'Only Admin and Tester can create products' : ''}
         >
-          <span className="text-sm font-semibold">Add product</span>
+          <span className="text-sm font-semibold">{t('products.add_product')}</span>
         </button>
       </div>
 
@@ -132,12 +134,12 @@ export default function ProductsPage() {
         <div className="relative">
           <input
             type="text"
-            placeholder="Search by name or SKU"
+            placeholder={t('products.search_placeholder')}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="input-field pl-12 h-11"
           />
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">Search</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">{t('common.search')}</span>
         </div>
       </div>
 
@@ -147,15 +149,15 @@ export default function ProductsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-lg animate-scale-in border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Create</p>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">New product</h2>
+                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('products.create')}</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('products.new_product')}</h2>
               </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400">Catalog</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{t('products.catalog')}</span>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Product Name *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.name_label')}</label>
                 <input
                   className="input-field"
                   placeholder="e.g., Laptop Dell XPS 15"
@@ -166,7 +168,7 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.category_label')}</label>
                   <input
                     className="input-field"
                     placeholder="e.g., Electronics"
@@ -175,13 +177,13 @@ export default function ProductsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Supplier</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.supplier_label')}</label>
                   <select
                     className="input-field"
                     value={form.supplier_id}
                     onChange={e => setForm({ ...form, supplier_id: e.target.value })}
                   >
-                    <option value="">None</option>
+                    <option value="">{t('products.none')}</option>
                     {suppliers.map(s => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
@@ -190,7 +192,7 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">SKU * <span className="text-xs text-gray-500 dark:text-gray-400">(auto-generated)</span></label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.sku_label')} <span className="text-xs text-gray-500 dark:text-gray-400">{t('products.auto_generated')}</span></label>
                 <input
                   className="input-field"
                   placeholder="e.g., LAP-DELL-001"
@@ -201,7 +203,7 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Unit Price</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.unit_price_label')}</label>
                   <input
                     className="input-field"
                     placeholder="0.00"
@@ -212,7 +214,7 @@ export default function ProductsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Initial Stock</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.initial_stock_label')}</label>
                   <input
                     className="input-field"
                     placeholder="0"
@@ -224,7 +226,7 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Minimum Stock Level</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('products.min_stock_label')}</label>
                 <input
                   className="input-field"
                   placeholder="0"
@@ -242,10 +244,10 @@ export default function ProductsPage() {
 
               <div className="flex gap-3 pt-4">
                 <button type="submit" disabled={submitting} className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                  {submitting ? 'Creating...' : 'Create product'}
+                  {submitting ? t('products.submitting') : t('products.add_product')}
                 </button>
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 btn-secondary">
-                  Cancel
+                  {t('buttons.cancel')}
                 </button>
               </div>
             </form>
@@ -259,7 +261,7 @@ export default function ProductsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-4xl shadow-lg animate-scale-in border border-gray-200 dark:border-gray-700 my-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Product Details</p>
+                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('products.detail_title')}</p>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedProduct.name}</h2>
                 <span className="text-sm font-mono text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded mt-1 inline-block">{selectedProduct.sku}</span>
               </div>
@@ -276,22 +278,22 @@ export default function ProductsPage() {
               <div className="card bg-gray-50 dark:bg-gray-700">
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Category</span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{selectedProduct.category || 'Not specified'}</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('products.category_label')}</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{selectedProduct.category || t('products.not_specified')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Unit Price</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('products.unit_price_label')}</span>
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(selectedProduct.unit_price)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Current Stock</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('nav.inventory')}</span>
                     <span className={`text-sm font-bold ${getStockColor(selectedProduct.stock, selectedProduct.min_stock)}`}>
-                      {selectedProduct.stock} units
+                      {selectedProduct.stock} {t('products.units')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Minimum Stock</span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{selectedProduct.min_stock} units</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('products.min_stock')}</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{selectedProduct.min_stock} {t('products.units')}</span>
                   </div>
                 </div>
               </div>
@@ -299,35 +301,35 @@ export default function ProductsPage() {
               <div className="card bg-gray-50 dark:bg-gray-700">
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('products.status')}</span>
                     <div>
                       {selectedProduct.stock === 0 ? (
-                        <span className="badge badge-danger">Out of Stock</span>
+                        <span className="badge badge-danger">{t('products.out_of_stock')}</span>
                       ) : selectedProduct.stock <= selectedProduct.min_stock ? (
-                        <span className="badge badge-warning">Low Stock</span>
+                        <span className="badge badge-warning">{t('products.low_stock')}</span>
                       ) : (
-                        <span className="badge badge-success">In Stock</span>
+                        <span className="badge badge-success">{t('products.in_stock')}</span>
                       )}
                     </div>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Supplier</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('products.supplier_label')}</span>
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
                       {selectedProduct.supplier_id
                         ? suppliers.find(s => s.id === selectedProduct.supplier_id)?.name || 'Unknown'
-                        : 'Not assigned'}
+                        : t('products.not_assigned')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Inventory Value</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('dashboard.inventory_value')}</span>
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
                       {formatCurrency(selectedProduct.stock * selectedProduct.unit_price)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Created</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('products.created')}</span>
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {selectedProduct.created_at ? new Date(selectedProduct.created_at).toLocaleDateString() : 'N/A'}
+                      {selectedProduct.created_at ? new Date(selectedProduct.created_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES') : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -336,12 +338,12 @@ export default function ProductsPage() {
 
             {/* Movement History Section */}
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Stock Over Time (Last 30 Days)</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">{t('products.stock_over_time')}</h3>
 
               {loadingMovements ? (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-700 rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-gray-600 text-sm">Loading data...</p>
+                  <p className="text-gray-600 text-sm">{t('products.loading_data')}</p>
                 </div>
               ) : chartData.length > 1 ? (
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
@@ -378,22 +380,22 @@ export default function ProductsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 bg-gray-50 rounded-lg mb-6">
-                  <p className="text-gray-600 font-medium">Not enough data for chart</p>
-                  <p className="text-gray-500 text-sm mt-1">Chart requires at least 2 data points</p>
+                  <p className="text-gray-600 font-medium">{t('products.not_enough_data')}</p>
+                  <p className="text-gray-500 text-sm mt-1">{t('products.chart_requires_points')}</p>
                 </div>
               )}
 
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Movement History</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">{t('products.movement_history')}</h3>
 
               {loadingMovements ? (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-700 rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-gray-600 text-sm">Loading movements...</p>
+                  <p className="text-gray-600 text-sm">{t('products.loading_data')}</p>
                 </div>
               ) : movements.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <p className="text-gray-600 font-medium">No movement history available</p>
-                  <p className="text-gray-500 text-sm mt-1">Movements will be tracked automatically</p>
+                  <p className="text-gray-600 font-medium">{t('products.no_movements')}</p>
+                  <p className="text-gray-500 text-sm mt-1">{t('products.tracked_automatically')}</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -428,7 +430,7 @@ export default function ProductsPage() {
                 onClick={() => setShowDetailModal(false)}
                 className="w-full btn-secondary"
               >
-                Close
+                {t('buttons.close')}
               </button>
             </div>
           </div>
@@ -444,11 +446,10 @@ export default function ProductsPage() {
       {/* Products Display (Responsive) */}
       <div className="space-y-4">
         {loading || !profile ? (
-          <PageLoader message="Gathering catalog data..." />
+          <PageLoader message={t('products.loading_data')} />
         ) : filteredProducts.length === 0 ? (
           <div className="card text-center py-16">
-            <p className="text-gray-700 font-semibold">No products found</p>
-            <p className="text-gray-500 text-sm mt-1">Adjust your search or add a new item.</p>
+            <p className="text-gray-700 font-semibold">{t('common.no_data')}</p>
           </div>
         ) : (
           <>
@@ -462,29 +463,29 @@ export default function ProductsPage() {
                       <p className="text-xs text-gray-500 font-mono mt-1">{p.sku}</p>
                     </div>
                     {p.stock === 0 ? (
-                      <span className="badge badge-danger text-[10px]">Out of Stock</span>
+                      <span className="badge badge-danger text-[10px]">{t('products.out_of_stock')}</span>
                     ) : p.stock <= p.min_stock ? (
-                      <span className="badge badge-warning text-[10px]">Low Stock</span>
+                      <span className="badge badge-warning text-[10px]">{t('products.low_stock')}</span>
                     ) : (
-                      <span className="badge badge-success text-[10px]">In Stock</span>
+                      <span className="badge badge-success text-[10px]">{t('products.in_stock')}</span>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mt-4 py-3 border-y border-gray-100 dark:border-gray-800">
                     <div>
-                      <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Stock</p>
+                      <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">{t('products.stock')}</p>
                       <p className={`text-xl font-bold ${getStockColor(p.stock, p.min_stock)}`}>{p.stock}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Price</p>
+                      <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">{t('products.price')}</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(p.unit_price)}</p>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center mt-3 pt-1">
-                    <p className="text-xs text-gray-500">Min. Stock: {p.min_stock}</p>
+                    <p className="text-xs text-gray-500">{t('products.min_stock')}: {p.min_stock}</p>
                     <div className="flex gap-2">
-                      <button className="text-blue-600 text-xs font-bold uppercase tracking-wider">Details &gt;</button>
+                      <button className="text-blue-600 text-xs font-bold uppercase tracking-wider">{t('buttons.details')} &gt;</button>
                     </div>
                   </div>
                 </div>
@@ -497,13 +498,13 @@ export default function ProductsPage() {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Product</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">SKU</th>
-                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Price</th>
-                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Stock</th>
-                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Min Stock</th>
-                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Status</th>
-                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Actions</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.new_product')}</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.sku_label').replace('*', '').trim()}</th>
+                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.price')}</th>
+                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.stock')}</th>
+                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.min_stock')}</th>
+                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.status')}</th>
+                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t('products.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
@@ -526,11 +527,11 @@ export default function ProductsPage() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           {p.stock === 0 ? (
-                            <span className="badge badge-danger">Out of Stock</span>
+                            <span className="badge badge-danger">{t('products.out_of_stock')}</span>
                           ) : p.stock <= p.min_stock ? (
-                            <span className="badge badge-warning">Low Stock</span>
+                            <span className="badge badge-warning">{t('products.low_stock')}</span>
                           ) : (
-                            <span className="badge badge-success">In Stock</span>
+                            <span className="badge badge-success">{t('products.in_stock')}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -538,17 +539,17 @@ export default function ProductsPage() {
                             <button
                               onClick={() => openProductDetail(p)}
                               className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1.5 rounded-lg transition-colors duration-150"
-                              title="View details"
+                              title={t('buttons.view')}
                             >
-                              View
+                              {t('buttons.view')}
                             </button>
                             {canDelete && (
                               <button
                                 onClick={() => handleDelete(p.id)}
                                 className="text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1.5 rounded-lg transition-colors duration-150"
-                                title="Delete product"
+                                title={t('buttons.delete')}
                               >
-                                Delete
+                                {t('buttons.delete')}
                               </button>
                             )}
                           </div>
@@ -565,8 +566,8 @@ export default function ProductsPage() {
 
       {/* Summary Footer */}
       <div className="flex items-center justify-between text-sm text-gray-600">
-        <p>Showing {filteredProducts.length} of {products.length} products</p>
-        <p className="text-gray-500">Data synced with database</p>
+        <p>{t('products.showing_x_of_y', { count: filteredProducts.length, total: products.length })}</p>
+        <p className="text-gray-500">{t('products.synced')}</p>
       </div>
     </div>
   );

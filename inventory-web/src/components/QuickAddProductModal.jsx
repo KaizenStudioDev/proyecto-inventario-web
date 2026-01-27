@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -77,7 +79,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div 
+      <div
         ref={modalRef}
         className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-slide-up"
       >
@@ -85,7 +87,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📦</span>
-            <h2 className="text-xl font-bold">Quick Add Product</h2>
+            <h2 className="text-xl font-bold">{t('products.new_product')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -100,7 +102,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
           {/* Product Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Product Name *
+              {t('products.name_label')}
             </label>
             <input
               type="text"
@@ -115,7 +117,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
           {/* SKU */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              SKU *
+              {t('products.sku_label')}
             </label>
             <input
               type="text"
@@ -131,7 +133,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Unit Price *
+                {t('products.unit_price_label')}
               </label>
               <input
                 type="number"
@@ -146,7 +148,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Initial Stock *
+                {t('products.initial_stock_label')}
               </label>
               <input
                 type="number"
@@ -162,7 +164,7 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
           {/* Min Stock */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Minimum Stock Level *
+              {t('products.min_stock_label')}
             </label>
             <input
               type="number"
@@ -188,14 +190,14 @@ export default function QuickAddProductModal({ isOpen, onClose, onSuccess }) {
               onClick={onClose}
               className="flex-1 btn-secondary"
             >
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 btn-primary"
             >
-              {loading ? '⏳ Adding...' : '✅ Add Product'}
+              {loading ? `⏳ ${t('products.submitting')}` : `✅ ${t('products.add_product')}`}
             </button>
           </div>
         </form>

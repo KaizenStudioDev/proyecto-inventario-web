@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useProducts, formatCurrency, useAuth } from '../lib/hooks';
-import { exportToPDF } from '../lib/pdfUtils';
+import { useAuth, useProducts } from '../lib/hooks';
 import LockedFeature from '../components/LockedFeature';
 import { useDemo } from '../lib/DemoContext';
 import PageLoader from '../components/PageLoader';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Papa from 'papaparse';
 
 export default function ReportsPage() {
+  const { t, i18n } = useTranslation();
   const { hasFeature } = useDemo();
 
   if (!hasFeature('reports')) {
-    return <LockedFeature featureName="Advanced Reports" requiredLicense="Inventory + Sales" />;
+    return <LockedFeature featureName={t('reports.title')} requiredLicense="Inventory + Sales" />;
   }
 
   const { profile } = useAuth();
@@ -81,7 +82,7 @@ export default function ReportsPage() {
 
     // Group by category
     const byCategory = products.reduce((acc, p) => {
-      const cat = p.category || 'Uncategorized';
+      const cat = p.category || t('common.not_specified');
       if (!acc[cat]) {
         acc[cat] = { category: cat, count: 0, value: 0, stock: 0 };
       }
@@ -101,13 +102,13 @@ export default function ReportsPage() {
       },
       chartData: Object.values(byCategory),
       tableData: products.map(p => ({
-        name: p.name,
-        sku: p.sku,
-        category: p.category || 'N/A',
-        stock: p.stock,
-        unitPrice: p.unit_price,
-        totalValue: p.stock * p.unit_price,
-        status: p.stock === 0 ? 'Out of Stock' : p.stock <= p.min_stock ? 'Low Stock' : 'In Stock'
+        [t('reports.table.name')]: p.name,
+        [t('reports.table.sku')]: p.sku,
+        [t('reports.table.category')]: p.category || t('common.n_a'),
+        [t('reports.table.stock')]: p.stock,
+        [t('reports.table.unit_price')]: p.unit_price,
+        [t('reports.table.total_value')]: p.stock * p.unit_price,
+        [t('reports.table.status')]: p.stock === 0 ? t('products.out_of_stock') : p.stock <= p.min_stock ? t('products.low_stock') : t('products.in_stock')
       }))
     });
   }
@@ -140,7 +141,7 @@ export default function ReportsPage() {
 
     // Group by month
     const byMonth = sales.reduce((acc, s) => {
-      const month = new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const month = new Date(s.created_at).toLocaleDateString(i18n.language, { month: 'short', year: 'numeric' });
       if (!acc[month]) {
         acc[month] = { month, count: 0, revenue: 0 };
       }
@@ -155,12 +156,12 @@ export default function ReportsPage() {
       if (sale.sale_items && sale.sale_items.length > 0) {
         sale.sale_items.forEach(item => {
           tableData.push({
-            date: new Date(sale.created_at).toLocaleDateString(),
-            customer: sale.customers?.name || 'N/A',
-            product: item.products?.name || 'N/A',
-            quantity: item.qty,
-            totalPrice: item.qty * item.unit_price,
-            status: sale.status
+            [t('reports.table.date')]: new Date(sale.created_at).toLocaleDateString(i18n.language),
+            [t('reports.table.customer')]: sale.customers?.name || t('common.n_a'),
+            [t('reports.table.product')]: item.products?.name || t('common.n_a'),
+            [t('reports.table.quantity')]: item.qty,
+            [t('reports.table.total_price')]: item.qty * item.unit_price,
+            [t('reports.table.status')]: t(`sales.status_${sale.status.toLowerCase()}`)
           });
         });
       }
@@ -202,7 +203,7 @@ export default function ReportsPage() {
 
     // Group by month
     const byMonth = purchases.reduce((acc, p) => {
-      const month = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const month = new Date(p.created_at).toLocaleDateString(i18n.language, { month: 'short', year: 'numeric' });
       if (!acc[month]) {
         acc[month] = { month, count: 0, cost: 0 };
       }
@@ -217,12 +218,12 @@ export default function ReportsPage() {
       if (purchase.purchase_items && purchase.purchase_items.length > 0) {
         purchase.purchase_items.forEach(item => {
           tableData.push({
-            date: new Date(purchase.created_at).toLocaleDateString(),
-            supplier: purchase.suppliers?.name || 'N/A',
-            product: item.products?.name || 'N/A',
-            quantity: item.qty,
-            totalPrice: item.qty * item.unit_price,
-            status: purchase.status
+            [t('reports.table.date')]: new Date(purchase.created_at).toLocaleDateString(i18n.language),
+            [t('reports.table.supplier')]: purchase.suppliers?.name || t('common.n_a'),
+            [t('reports.table.product')]: item.products?.name || t('common.n_a'),
+            [t('reports.table.quantity')]: item.qty,
+            [t('reports.table.total_price')]: item.qty * item.unit_price,
+            [t('reports.table.status')]: t(`purchases.status_${purchase.status.toLowerCase()}`)
           });
         });
       }
@@ -265,19 +266,19 @@ export default function ReportsPage() {
 
     // Map directly from database records
     const tableData = movements.map(m => ({
-      date: new Date(m.created_at).toLocaleDateString('es-ES', {
+      [t('reports.table.date')]: new Date(m.created_at).toLocaleDateString(i18n.language, {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
       }),
-      product: m.products?.name || `Product ${m.product_id}`,
-      type: (m.type || 'Unknown').toUpperCase(),
-      quantity: Number(m.delta || 0),
-      stockBefore: Number(m.previous_stock || 0),
-      stockAfter: Number(m.new_stock || 0),
-      notes: m.notes || '—'
+      [t('reports.table.product')]: m.products?.name || `${t('common.product')} ${m.product_id}`,
+      [t('reports.table.type')]: (m.type || t('common.n_a')).toUpperCase(),
+      [t('reports.table.quantity')]: Number(m.delta || 0),
+      [t('reports.table.stock_before')]: Number(m.previous_stock || 0),
+      [t('reports.table.stock_after')]: Number(m.new_stock || 0),
+      [t('reports.table.notes')]: m.notes || '—'
     }));
 
     const totalMovements = movements.length;
@@ -306,19 +307,16 @@ export default function ReportsPage() {
   function handleExportPDF() {
     if (!reportData || !reportData.tableData) return;
 
-    const headers = Object.keys(reportData.tableData[0]).map(key =>
-      key.replace(/([A-Z])/g, ' $1').trim()
-    );
+    const headers = Object.keys(reportData.tableData[0]);
 
     // Transform object data to array of arrays for jspdf-autotable
     const data = reportData.tableData.map(row =>
       Object.values(row).map((val, i) => {
         // Format currency values
         if (typeof val === 'number' && (
-          Object.keys(row)[i].toLowerCase().includes('price') ||
-          Object.keys(row)[i].toLowerCase().includes('value') ||
-          Object.keys(row)[i].toLowerCase().includes('cost') ||
-          Object.keys(row)[i].toLowerCase().includes('revenue')
+          Object.keys(row)[i].includes(t('reports.table.unit_price')) ||
+          Object.keys(row)[i].includes(t('reports.table.total_value')) ||
+          Object.keys(row)[i].includes(t('reports.table.total_price'))
         )) {
           return formatCurrency(val);
         }
@@ -327,7 +325,7 @@ export default function ReportsPage() {
     );
 
     exportToPDF({
-      title: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`,
+      title: `${t(`reports.types.${reportType}`)} ${t('nav.reports')}`,
       columns: headers,
       data: data,
       filename: `${reportType}_report_${new Date().toISOString().split('T')[0]}.pdf`
@@ -359,8 +357,8 @@ export default function ReportsPage() {
   if (!canViewReports) {
     return (
       <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-        <p className="text-gray-600">You don't have permission to view reports.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('common.access_denied')}</h1>
+        <p className="text-gray-600">{t('common.no_permission', { role: profile?.role, feature: t('nav.reports').toLowerCase() })}</p>
       </div>
     );
   }
@@ -369,29 +367,29 @@ export default function ReportsPage() {
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">Reports & Analytics</h1>
-        <p className="text-gray-600 dark:text-gray-400">Generate comprehensive business intelligence reports</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">{t('reports.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-400">{t('reports.subtitle')}</p>
       </div>
 
       {/* Filters Card */}
       <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Report Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('reports.type_label')}</label>
             <select
               className="input-field"
               value={reportType}
               onChange={e => setReportType(e.target.value)}
             >
-              <option value="inventory">Inventory Valuation</option>
-              <option value="sales">Sales Report</option>
-              <option value="purchases">Purchases Report</option>
-              <option value="movements">Stock Movements</option>
+              <option value="inventory">{t('reports.types.inventory')}</option>
+              <option value="sales">{t('reports.types.sales')}</option>
+              <option value="purchases">{t('reports.types.purchases')}</option>
+              <option value="movements">{t('reports.types.movements')}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('reports.from_label')}</label>
             <input
               type="date"
               className="input-field"
@@ -401,7 +399,7 @@ export default function ReportsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('reports.to_label')}</label>
             <input
               type="date"
               className="input-field"
@@ -416,7 +414,7 @@ export default function ReportsPage() {
               disabled={loading}
               className="btn-primary w-full disabled:opacity-50"
             >
-              {loading ? 'Generating...' : 'Generate Report'}
+              {loading ? t('buttons.generating') : t('buttons.generate')}
             </button>
           </div>
         </div>
@@ -432,12 +430,12 @@ export default function ReportsPage() {
             {Object.entries(reportData.summary).map(([key, value]) => (
               <div key={key} className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                  {t(`reports.summaries.${key}`)}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {typeof value === 'number' && key.toLowerCase().includes('value') || key.toLowerCase().includes('revenue') || key.toLowerCase().includes('cost')
+                  {typeof value === 'number' && (key.toLowerCase().includes('value') || key.toLowerCase().includes('revenue') || key.toLowerCase().includes('cost'))
                     ? formatCurrency(value)
-                    : value.toLocaleString()}
+                    : value.toLocaleString(i18n.language)}
                 </p>
               </div>
             ))}
@@ -447,7 +445,7 @@ export default function ReportsPage() {
           {reportData.chartData && reportData.chartData.length > 0 && (
             <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Visual Analysis</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('reports.visual_analysis')}</h2>
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={reportData.chartData}>
@@ -471,24 +469,24 @@ export default function ReportsPage() {
                   <Legend />
                   {reportData.type === 'inventory' && (
                     <>
-                      <Bar dataKey="count" fill="#3b82f6" name="Products" />
-                      <Bar dataKey="stock" fill="#10b981" name="Total Stock" />
+                      <Bar dataKey="count" fill="#3b82f6" name={t('reports.charts.products')} />
+                      <Bar dataKey="stock" fill="#10b981" name={t('reports.charts.total_stock')} />
                     </>
                   )}
                   {reportData.type === 'sales' && (
                     <>
-                      <Bar dataKey="count" fill="#3b82f6" name="Sales Count" />
-                      <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
+                      <Bar dataKey="count" fill="#3b82f6" name={t('reports.charts.sales_count')} />
+                      <Bar dataKey="revenue" fill="#10b981" name={t('reports.charts.revenue')} />
                     </>
                   )}
                   {reportData.type === 'purchases' && (
                     <>
-                      <Bar dataKey="count" fill="#3b82f6" name="Purchase Count" />
-                      <Bar dataKey="cost" fill="#f59e0b" name="Total Cost" />
+                      <Bar dataKey="count" fill="#3b82f6" name={t('reports.charts.purchase_count')} />
+                      <Bar dataKey="cost" fill="#f59e0b" name={t('reports.charts.total_cost')} />
                     </>
                   )}
                   {reportData.type === 'movements' && (
-                    <Bar dataKey="count" fill="#3b82f6" name="Movement Count" />
+                    <Bar dataKey="count" fill="#3b82f6" name={t('reports.charts.movement_count')} />
                   )}
                 </BarChart>
               </ResponsiveContainer>
@@ -498,13 +496,13 @@ export default function ReportsPage() {
           {/* Export and Table */}
           <div className="card p-0 overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Detailed Data</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('reports.detailed_data')}</h2>
               <div className="flex gap-2">
                 <button onClick={handleExportPDF} className="btn-primary flex items-center gap-2 text-sm">
-                  <span>📄</span> Export PDF
+                  <span>📄</span> {t('buttons.download_pdf')}
                 </button>
                 <button onClick={exportToCSV} className="btn-secondary flex items-center gap-2 text-sm">
-                  <span>📊</span> CSV
+                  <span>📊</span> {t('buttons.export_csv')}
                 </button>
               </div>
             </div>
@@ -515,7 +513,7 @@ export default function ReportsPage() {
                   <tr>
                     {reportData.tableData[0] && Object.keys(reportData.tableData[0]).map(key => (
                       <th key={key} className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                        {key}
                       </th>
                     ))}
                   </tr>
@@ -525,7 +523,11 @@ export default function ReportsPage() {
                     <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       {Object.values(row).map((val, i) => (
                         <td key={i} className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                          {typeof val === 'number' && Object.keys(row)[i].toLowerCase().includes('price') || Object.keys(row)[i].toLowerCase().includes('value') || Object.keys(row)[i].toLowerCase().includes('cost')
+                          {typeof val === 'number' && (
+                            Object.keys(row)[i].includes(t('reports.table.unit_price')) ||
+                            Object.keys(row)[i].includes(t('reports.table.total_value')) ||
+                            Object.keys(row)[i].includes(t('reports.table.total_price'))
+                          )
                             ? formatCurrency(val)
                             : val}
                         </td>
@@ -541,8 +543,8 @@ export default function ReportsPage() {
 
       {!reportData && !loading && (
         <div className="text-center py-16 card">
-          <p className="text-gray-600 font-medium">Select report type and click "Generate Report"</p>
-          <p className="text-gray-500 text-sm mt-1">Choose date range for time-based reports</p>
+          <p className="text-gray-600 font-medium">{t('reports.select_prompt')}</p>
+          <p className="text-gray-500 text-sm mt-1">{t('reports.date_prompt')}</p>
         </div>
       )}
     </div>

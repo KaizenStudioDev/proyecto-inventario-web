@@ -3,8 +3,10 @@ import { supabase } from '../lib/supabaseClient';
 import { formatCurrency, formatCompactCurrency, formatCompactNumber } from '../lib/hooks';
 import QuickAddProductModal from '../components/QuickAddProductModal';
 import PageLoader from '../components/PageLoader';
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardPage({ setCurrentPage = () => { } }) {
+  const { t, i18n } = useTranslation();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
@@ -68,15 +70,15 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
   }
 
   if (loading) {
-    return <PageLoader message="Loading dashboard overview..." />;
+    return <PageLoader message={t('buttons.loading')} />;
   }
 
   const stats = [
-    { label: 'Total Sales', value: formatCompactCurrency(metrics?.total_sales_completed || 0), fullValue: formatCurrency(metrics?.total_sales_completed || 0), context: 'Month to date' },
-    { label: 'Total Purchases', value: formatCompactCurrency(metrics?.total_purchases_received || 0), fullValue: formatCurrency(metrics?.total_purchases_received || 0), context: 'Month to date' },
-    { label: 'Inventory Value', value: formatCompactCurrency(metrics?.inventory_value || 0), fullValue: formatCurrency(metrics?.inventory_value || 0), context: 'Book value' },
-    { label: 'Products In Stock', value: formatCompactNumber(metrics?.available_product_count || 0), fullValue: (metrics?.available_product_count || 0).toLocaleString(), context: 'Active SKUs' },
-    { label: 'Out of Stock', value: formatCompactNumber(metrics?.out_of_stock_count || 0), fullValue: (metrics?.out_of_stock_count || 0).toLocaleString(), context: 'Requires action' },
+    { label: t('dashboard.total_sales', { defaultValue: 'Total Sales' }), value: formatCompactCurrency(metrics?.total_sales_completed || 0), fullValue: formatCurrency(metrics?.total_sales_completed || 0), context: t('dashboard.mtd', { defaultValue: 'Month to date' }) },
+    { label: t('dashboard.total_purchases', { defaultValue: 'Total Purchases' }), value: formatCompactCurrency(metrics?.total_purchases_received || 0), fullValue: formatCurrency(metrics?.total_purchases_received || 0), context: t('dashboard.mtd', { defaultValue: 'Month to date' }) },
+    { label: t('dashboard.inventory_value'), value: formatCompactCurrency(metrics?.inventory_value || 0), fullValue: formatCurrency(metrics?.inventory_value || 0), context: t('dashboard.book_value', { defaultValue: 'Book value' }) },
+    { label: t('dashboard.products_in_stock', { defaultValue: 'Products In Stock' }), value: formatCompactNumber(metrics?.available_product_count || 0), fullValue: (metrics?.available_product_count || 0).toLocaleString(), context: t('dashboard.active_skus', { defaultValue: 'Active SKUs' }) },
+    { label: t('dashboard.out_of_stock', { defaultValue: 'Out of Stock' }), value: formatCompactNumber(metrics?.out_of_stock_count || 0), fullValue: (metrics?.out_of_stock_count || 0).toLocaleString(), context: t('dashboard.requires_action', { defaultValue: 'Requires action' }) },
   ];
 
   return (
@@ -84,8 +86,8 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">Executive Overview</h1>
-          <p className="text-gray-600 dark:text-gray-400">Operational snapshot for decision-making</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">{t('dashboard.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -95,10 +97,10 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
             title="Refresh dashboard"
           >
             <span className={`text-sm font-semibold ${refreshing ? 'animate-spin' : ''}`}>↻</span>
-            <span className="text-sm font-medium">Refresh</span>
+            <span className="text-sm font-medium">{t('buttons.refresh', { defaultValue: 'Refresh' })}</span>
           </button>
           <div className="hidden md:flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300">
-            <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <span>{new Date().toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
         </div>
       </div>
@@ -128,18 +130,18 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 dark:text-amber-400 text-sm font-semibold">
-                Alert
+                {t('common.alert', { defaultValue: 'Alert' })}
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Stock Attention</h2>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{lowStockProducts.length} products below threshold</p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.stock_attention', { defaultValue: 'Stock Attention' })}</h2>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('dashboard.low_stock_count', { count: lowStockProducts.length, defaultValue: '{{count}} products below threshold' })}</p>
               </div>
             </div>
             <button
               onClick={() => setCurrentPage('alerts')}
               className="text-sm font-semibold text-amber-700 hover:text-amber-800"
             >
-              View all
+              {t('dashboard.view_all')}
             </button>
           </div>
 
@@ -169,16 +171,16 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
         {/* Quick Stats */}
         <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Financial Summary</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.financial_summary')}</h2>
             <span className="text-xs text-gray-500 dark:text-gray-400">COP</span>
           </div>
           <ul className="space-y-3">
             <li className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
-              <span>Gross Profit</span>
+              <span>{t('dashboard.gross_profit')}</span>
               <span className="font-semibold text-gray-900 dark:text-white text-right">{formatCurrency((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0))}</span>
             </li>
             <li className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
-              <span>Profit Margin</span>
+              <span>{t('dashboard.profit_margin')}</span>
               <span className="font-semibold text-gray-900 dark:text-white text-right">{metrics?.total_sales_completed > 0 ? ((((metrics?.total_sales_completed || 0) - (metrics?.total_purchases_received || 0)) / metrics.total_sales_completed) * 100).toFixed(1) : 0}%</span>
             </li>
             <li className="flex justify-between items-center py-2 text-sm text-gray-700 dark:text-gray-300">
@@ -191,24 +193,24 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
         {/* System Status */}
         <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Status</h2>
-            <span className="text-xs text-green-700 dark:text-green-400 font-semibold">Stable</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.system_status')}</h2>
+            <span className="text-xs text-green-700 dark:text-green-400 font-semibold">{t('dashboard.stable')}</span>
           </div>
           <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
             <li className="flex items-center gap-3 py-2">
               <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>Database connectivity</span>
-              <span className="ml-auto badge badge-success">Live</span>
+              <span>{t('dashboard.db_connectivity')}</span>
+              <span className="ml-auto badge badge-success">{t('dashboard.live')}</span>
             </li>
             <li className="flex items-center gap-3 py-2">
               <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>RLS policies</span>
-              <span className="ml-auto badge badge-success">Enforced</span>
+              <span>{t('dashboard.rls_policies')}</span>
+              <span className="ml-auto badge badge-success">{t('dashboard.enforced')}</span>
             </li>
             <li className="flex items-center gap-3 py-2">
               <span className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>Stock tracking</span>
-              <span className="ml-auto badge badge-success">Enabled</span>
+              <span>{t('dashboard.stock_tracking')}</span>
+              <span className="ml-auto badge badge-success">{t('dashboard.enabled')}</span>
             </li>
           </ul>
         </div>
@@ -216,36 +218,36 @@ export default function DashboardPage({ setCurrentPage = () => { } }) {
         {/* Quick Actions */}
         <div className="card bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Shortcuts</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.quick_actions')}</h2>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.shortcuts')}</span>
           </div>
           <div className="space-y-2 text-sm">
             <button
               onClick={() => setCurrentPage('alerts')}
               className="w-full justify-between border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              Stock alerts
+              {t('dashboard.stock_alerts')}
               <span>→</span>
             </button>
             <button
               onClick={() => setShowQuickAddModal(true)}
               className="w-full justify-between border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              Quick add product
+              {t('dashboard.quick_add_product')}
               <span>→</span>
             </button>
             <button
               onClick={() => setCurrentPage('sales')}
               className="w-full justify-between border border-blue-200 dark:border-blue-900/50 text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              Record sale
+              {t('dashboard.record_sale')}
               <span>→</span>
             </button>
             <button
               onClick={() => setCurrentPage('purchases')}
               className="w-full justify-between border border-green-200 dark:border-green-900/50 text-green-800 dark:text-green-200 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 font-medium py-3 px-4 rounded-md flex items-center transition-colors"
             >
-              Record purchase
+              {t('dashboard.record_purchase')}
               <span>→</span>
             </button>
           </div>

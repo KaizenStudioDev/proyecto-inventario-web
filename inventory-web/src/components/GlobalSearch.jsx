@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 export default function GlobalSearch() {
+    const { t } = useTranslation();
     const [isExpanded, setIsExpanded] = useState(false);
     const [query, setQuery] = useState('');
     const [results, setResults] = useState({ products: [], customers: [], suppliers: [] });
@@ -98,7 +100,7 @@ export default function GlobalSearch() {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search..."
+                    placeholder={t('search.placeholder')}
                     className={`bg-transparent border-none outline-none text-sm text-gray-900 dark:text-white placeholder-gray-500 w-full transition-opacity duration-200 ${isExpanded ? 'opacity-100 ml-1' : 'opacity-0 pointer-events-none'
                         }`}
                 />
@@ -118,18 +120,18 @@ export default function GlobalSearch() {
                 <div className="absolute top-full right-0 mt-3 w-72 sm:w-80 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 z-[70] overflow-hidden animate-fade-in">
                     <div className="max-h-[60vh] overflow-y-auto p-2 space-y-4">
                         {loading ? (
-                            <div className="p-4 text-center text-gray-500 animate-pulse text-xs">Searching...</div>
+                            <div className="p-4 text-center text-gray-500 animate-pulse text-xs">{t('search.searching')}</div>
                         ) : results.products.length === 0 &&
                             results.customers.length === 0 &&
                             results.suppliers.length === 0 ? (
                             <div className="p-4 text-center text-gray-500 text-xs text-balance">
-                                No results for "{query}"
+                                {t('search.no_results', { query })}
                             </div>
                         ) : (
                             <>
                                 {results.products.length > 0 && (
                                     <section>
-                                        <h3 className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Products</h3>
+                                        <h3 className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('search.products')}</h3>
                                         {results.products.map(p => (
                                             <button
                                                 key={p.id}
@@ -145,7 +147,7 @@ export default function GlobalSearch() {
 
                                 {results.customers.length > 0 && (
                                     <section>
-                                        <h3 className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Customers</h3>
+                                        <h3 className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('search.customers')}</h3>
                                         {results.customers.map(c => (
                                             <button
                                                 key={c.id}
@@ -160,7 +162,7 @@ export default function GlobalSearch() {
 
                                 {results.suppliers.length > 0 && (
                                     <section>
-                                        <h3 className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Suppliers</h3>
+                                        <h3 className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('search.suppliers')}</h3>
                                         {results.suppliers.map(s => (
                                             <button
                                                 key={s.id}
@@ -176,8 +178,8 @@ export default function GlobalSearch() {
                         )}
                     </div>
                     <div className="p-2 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-[9px] text-gray-400 flex justify-between">
-                        <span>ESC to close</span>
-                        <span>Ctrl+K to focus</span>
+                        <span>{t('search.esc_close')}</span>
+                        <span>{t('search.ctrl_k_focus')}</span>
                     </div>
                 </div>
             )}
